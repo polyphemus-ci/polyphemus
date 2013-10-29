@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+"""polyphemus entry point."""
+
+from polyphemus.main import main
+
+main()
+

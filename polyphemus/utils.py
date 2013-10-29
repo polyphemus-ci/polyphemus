@@ -9,6 +9,7 @@ import io
 import re
 import sys
 import glob
+import tempfile
 import functools
 from copy import deepcopy
 from pprint import pformat
@@ -379,4 +380,13 @@ class memoize_method(object):
         else:
             return self.meth(*args, **kwargs)
 
-
+def check_cmd(args):
+    """Runs a command in a subprocess and verifies that it executed properly.
+    """
+    if not isinstance(args, basestring):
+        args = " ".join(args)
+    f = tempfile.NamedTemporaryFile()
+    rtn = subprocess.call(args, shell=True, stdout=f, stderr=f)
+    out = f.seek(0)
+    f.close()
+    return rtn, out
