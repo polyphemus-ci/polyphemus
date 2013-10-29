@@ -37,10 +37,11 @@ class PolyphemusPlugin(Plugin):
                                       branch="staging")
         fetchfile = NamedTemporaryFile()
         fetchfile.write(fetch)
-        subprocess.check_call(['scp', fetchfile.name, 'cyclusci@submit-1.batlab.org:polyphemus/fetch'])
+        fetchfile.flush()
+        subprocess.check_call(['scp', fetchfile.name, 'cyclusci@submit-1.batlab.org:polyphemus/fetch/cyclus.git'])
         fetchfile.close()
 
-        rtn, out = check_cmd(['ssh', 'cd', 'polyphemus;', 'nmi_submit', 'cyclus.run-spec'])
+        rtn, out = check_cmd(['ssh', 'cyclusci@submit-1.batlab.org', 'cd', 'polyphemus;', 'nmi_submit', 'cyclus.run-spec'])
         lines = out.splitlines()
         report_url = lines[-1].strip()
-        print report_url
+        print(report_url)

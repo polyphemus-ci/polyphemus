@@ -11,6 +11,7 @@ import sys
 import glob
 import tempfile
 import functools
+import subprocess
 from copy import deepcopy
 from pprint import pformat
 from collections import Mapping, Iterable, Hashable, Sequence, namedtuple
@@ -27,7 +28,7 @@ if sys.version_info[0] >= 3:
 DEFAULT_RC_FILE = "polyphemusrc.py"
 """Default run control file name."""
 
-DEFAULT_PLUGINS = ('polyphemus.base', )
+DEFAULT_PLUGINS = ('polyphemus.base', 'polyphemus.batlabrun')
 """Default list of plugin module names."""
 
 FORBIDDEN_NAMES = frozenset(['del', 'global'])
@@ -383,10 +384,12 @@ class memoize_method(object):
 def check_cmd(args):
     """Runs a command in a subprocess and verifies that it executed properly.
     """
-    if not isinstance(args, basestring):
-        args = " ".join(args)
+    #if not isinstance(args, basestring):
+    #    args = " ".join(args)
     f = tempfile.NamedTemporaryFile()
-    rtn = subprocess.call(args, shell=True, stdout=f, stderr=f)
-    out = f.seek(0)
+    #rtn = subprocess.call(args, shell=True, stdout=f, stderr=f)
+    rtn = subprocess.call(args, stdout=f, stderr=f)
+    f.seek(0)
+    out = f.read()
     f.close()
     return rtn, out

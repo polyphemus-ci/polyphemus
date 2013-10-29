@@ -298,7 +298,7 @@ class Plugins(object):
             if modname in self.modnames:
                 continue
             mod = importlib.import_module(modname)
-            plugin = mod.XDressPlugin()
+            plugin = mod.PolyphemusPlugin()
             req = plugin.requires() if callable(plugin.requires) else plugin.requires
             req = req if loaddeps else ()
             self._load(req, loaddeps=loaddeps)
@@ -312,7 +312,7 @@ class Plugins(object):
         -------
         parser : argparse.ArgumentParser
         """
-        parser = argparse.ArgumentParser("Generates XDress API",
+        parser = argparse.ArgumentParser("Polyphemus CI",
                     conflict_handler='resolve', argument_default=NotSpecified)
         for plugin in self.plugins:
             plugin.update_argparser(parser)
