@@ -1,4 +1,4 @@
-"""Version information about xdress and its dependencies.
+"""Version information about polyphemus and its dependencies.
 """
 
 import re
@@ -30,9 +30,9 @@ def report_versions():
     return vstr.format(**globals())
 
 #
-# XDress
+# Polyphemus
 #
 
-xdress_version = '0.1-dev'
-xdress_version_info = version_info(0, 1, 0, 'dev')
+polyphemus_version = '0.1-dev'
+polyphemus_version_info = version_info(0, 1, 0, 'dev')
 
