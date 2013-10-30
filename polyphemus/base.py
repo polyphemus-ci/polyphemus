@@ -1,8 +1,6 @@
-"""The base plugin for XDress.
+"""The base plugin for polyphemus.
 
-This module is available as an xdress plugin by the name ``xdress.base``.
-
-:author: Anthony Scopatz <scopatz@gmail.com>
+This module is available as an polyphemus plugin by the name ``polyphemus.base``.
 
 Base Plugin API
 ===============
@@ -60,9 +58,5 @@ class PolyphemusPlugin(Plugin):
     def report_debug(self, rc):
         msg = 'Version Information:\n\n{0}\n\n'
         msg += nyansep + "\n\n"
-        msg += 'Current descripton cache contents:\n\n{1}\n\n'
-        msg = msg.format(indent(report_versions()), str(rc._cache))
-        msg += nyansep + "\n\n"
-        msg += "Current type system contents:\n\n" + str(rc.ts) + "\n\n"
         return msg
 
