@@ -31,6 +31,7 @@ except ImportError:
 
 from .utils import NotSpecified, RunControl, DEFAULT_RC_FILE, DEFAULT_PLUGINS, \
     exec_file
+from .server import app
 
 from .plugins import Plugins
 
@@ -74,6 +75,8 @@ def main():
     rc._update([(k, v) for k, v in ns.__dict__.items()])
     plugins.setup()
     plugins.execute()
+    app.plugins = plugins
+    app.run(host='0.0.0.0')
     plugins.teardown()
 
 if __name__ == '__main__':

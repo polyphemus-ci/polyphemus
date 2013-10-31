@@ -25,6 +25,7 @@ class PolyphemusPlugin(Plugin):
         rc=DEFAULT_RC_FILE,
         plugins=DEFAULT_PLUGINS,
         debug=False,
+        debug_filename='debug.txt',
         verbose=False,
         version=False,
         bash_completion=True,
@@ -34,6 +35,7 @@ class PolyphemusPlugin(Plugin):
         'rc': "Path to run control file",
         'plugins': "Plugins to include",
         'debug': 'run in debugging mode', 
+        'debug_filename': 'the path to the debug file', 
         'verbose': "Print more output.",
         'version': "Print version information.",
         'bash_completion': ("Flag for enabling / disabling BASH completion. "
@@ -45,6 +47,8 @@ class PolyphemusPlugin(Plugin):
         parser.add_argument('--plugins', nargs="+", help=self.rcdocs["plugins"])
         parser.add_argument('--debug', action='store_true', 
                             help=self.rcdocs["debug"])
+        parser.add_argument('--debug-filename', dest='debug_filename', 
+                            help=self.rcdocs["debug_filename"])
         parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',
                             help=self.rcdocs["verbose"])
         parser.add_argument('--version', action='store_true', dest='version',
