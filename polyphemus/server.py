@@ -19,6 +19,7 @@ def exec_plugins(f):
         rtn = f(*args, **kwargs)
         app.plugins.execute()
         return rtn
+    return wrapper
 
 @exec_plugins
 @app.route('/github', methods=['GET', 'POST'])

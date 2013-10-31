@@ -12,6 +12,8 @@ from tempfile import NamedTemporaryFile
 import subprocess
 from warnings import warn
 
+from event import runfor
+
 from .utils import RunControl, NotSpecified, writenewonly, \
     DEFAULT_RC_FILE, DEFAULT_PLUGINS, nyansep, indent, check_cmd
 from .plugins import Plugin
@@ -32,6 +34,7 @@ class PolyphemusPlugin(Plugin):
     defaultrc = RunControl(
         )
 
+    @runfor('batlab')
     def execute(self, rc):
         fetch = fetch_template.format(repo="git://github.com/cyclus/cyclus", 
                                       branch="staging")

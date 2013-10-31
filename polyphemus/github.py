@@ -32,8 +32,7 @@ class PolyphemusPlugin(Plugin):
     defaultrc = RunControl(
         )
 
+    #@runfor('github')    
     def execute(self, rc):
         event = rc.event
-        if event.name != 'github':
-            return
         pprint.pprint(event.data.payload)

@@ -1,5 +1,6 @@
 """A simple class for distiguising between events coming from various sources.
 """
+from functools import wraps
 
 class Event(object):
     """A basic event class that has a kind (name, type, identifier, whatevs) and 
@@ -29,3 +30,17 @@ class Event(object):
         if not isinstance(other, Event):
             return NotImplemented
         return (self.name == other.name) and (self.data == other.data)
+
+def runfor(*events):
+    """A decorator for running only certain events.
+    """
+    events = frozenset(events)
+    def dec(f):
+        @wraps
+        def wrapper(self, rc, *args, **kwargs):
+            print "runnint for rc.event = ", rc.event.name
+            if rc.event.name not in events:
+                return 
+            return self.f(rc, *args, **kwargs)
+        return wrapper
+    return dec
