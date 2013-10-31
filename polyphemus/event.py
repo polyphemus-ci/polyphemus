@@ -7,23 +7,23 @@ class Event(object):
     some associated data.
     """
 
-    def __init__(self, kind, data=None):
+    def __init__(self, name, data=None):
         """Parameters
         ----------
-        kind : str
-            The name of the event, such as 'github'. 
+        name : str
+            The kind of the event, such as 'github'. 
         data : optional
             Information associated with the even for the plugins to use.
 
         """
-        self.kind = kind
+        self.name = name
         self.data = data
 
     def __str__(self):
-        return "{0} event holding {1}".format(self.kind, self.data)
+        return "{0} event holding {1}".format(self.name, self.data)
 
     def __repr__(self):
-        return "{0}(kind={1}, data={2})".format(self.__class__.__name__, self.kind, 
+        return "{0}(kind={1}, data={2})".format(self.__class__.__name__, self.name, 
                                                 self.data)
 
     def __eq__(self, other):
@@ -36,11 +36,10 @@ def runfor(*events):
     """
     events = frozenset(events)
     def dec(f):
-        @wraps
+        @wraps(f)
         def wrapper(self, rc, *args, **kwargs):
-            print "runnint for rc.event = ", rc.event.name
             if rc.event.name not in events:
                 return 
-            return self.f(rc, *args, **kwargs)
+            return f(self, rc, *args, **kwargs)
         return wrapper
     return dec

@@ -15,16 +15,11 @@ from warnings import warn
 from .utils import RunControl, NotSpecified, writenewonly, \
     DEFAULT_RC_FILE, DEFAULT_PLUGINS, nyansep, indent, check_cmd
 from .plugins import Plugin
+from .event import runfor
 #from .version import report_versions
 
 if sys.version_info[0] >= 3:
     basestring = str
-
-fetch_template = \
-"""method = git
-git_repo = {repo}
-git_path = cyclus;cd cyclus;git checkout {branch}
-"""
 
 class PolyphemusPlugin(Plugin):
     """This class provides functionality for getting data from github."""
@@ -32,7 +27,7 @@ class PolyphemusPlugin(Plugin):
     defaultrc = RunControl(
         )
 
-    #@runfor('github')    
+    @runfor('github')    
     def execute(self, rc):
         event = rc.event
-        pprint.pprint(event.data.payload)
+        pprint.pprint(event.data)
