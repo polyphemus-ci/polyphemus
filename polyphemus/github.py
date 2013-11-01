@@ -15,7 +15,7 @@ from warnings import warn
 from .utils import RunControl, NotSpecified, writenewonly, \
     DEFAULT_RC_FILE, DEFAULT_PLUGINS, nyansep, indent, check_cmd
 from .plugins import Plugin
-from .event import runfor
+from .event import Event, runfor
 #from .version import report_versions
 
 if sys.version_info[0] >= 3:
@@ -26,6 +26,17 @@ class PolyphemusPlugin(Plugin):
 
     defaultrc = RunControl(
         )
+
+    route = 'github'
+
+    request_methods = ['GET', 'POST']
+
+    def response(self):
+        print request.method
+        payload = json.loads(request.form['payload'])
+        app.plugins.rc.event = Event(name='github', data=payload)
+        return request.method + ": github"
+
 
     @runfor('github')    
     def execute(self, rc):

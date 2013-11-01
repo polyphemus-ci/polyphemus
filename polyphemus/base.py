@@ -29,6 +29,8 @@ class PolyphemusPlugin(Plugin):
         verbose=False,
         version=False,
         bash_completion=True,
+        host='0.0.0.0',
+        appname="polyphemus",
         )
 
     rcdocs = {
@@ -40,6 +42,9 @@ class PolyphemusPlugin(Plugin):
         'version': "Print version information.",
         'bash_completion': ("Flag for enabling / disabling BASH completion. "
                             "This is only relevant when using argcomplete."),
+        'host': ("Which urls to host to, ie '0.0.0.0' for everyone or "
+                 "'localhost' for yourself"),
+        'appname': "The name of the flask application."
         }
 
     def update_argparser(self, parser):
@@ -53,6 +58,8 @@ class PolyphemusPlugin(Plugin):
                             help=self.rcdocs["verbose"])
         parser.add_argument('--version', action='store_true', dest='version',
                             help=self.rcdocs["version"])
+        parser.add_argument('--host', help=self.rcdocs['host'])
+        parser.add_argument('--appname', help=self.rcdocs['appname'])
 
     def setup(self, rc):
         if rc.version:

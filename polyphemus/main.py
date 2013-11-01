@@ -74,8 +74,7 @@ def main():
     rc._update(rcdict)
     rc._update([(k, v) for k, v in ns.__dict__.items()])
     plugins.setup()
-    app.plugins = plugins
-    app.run(host='0.0.0.0', debug=rc.debug)
+    plugins.run_app()
     plugins.teardown()
 
 if __name__ == '__main__':
