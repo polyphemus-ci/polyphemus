@@ -19,7 +19,7 @@ if sys.version_info[0] >= 3:
     basestring = str
 
 class PolyphemusPlugin(Plugin):
-    """This class provides base functionality for xdress itself."""
+    """This class provides base functionality for polyhemus itself."""
 
     defaultrc = RunControl(
         rc=DEFAULT_RC_FILE,

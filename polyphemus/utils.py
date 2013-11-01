@@ -182,9 +182,9 @@ NotSpecified = NotSpecified()
 has not been given."""
 
 class RunControl(object):
-    """A composable configuration class for xdress. Unlike argparse.Namespace,
-    this keeps the object dictionary (__dict__) separate from the run control
-    attributes dictionary (_dict)."""
+    """A composable configuration class. Unlike argparse.Namespace,
+    this keeps the object dictionary (__dict__) separate from the run 
+    control attributes dictionary (_dict)."""
 
     def __init__(self, **kwargs):
         """Parameters

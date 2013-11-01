@@ -22,7 +22,7 @@ def version_parser(ver):
     return vi
 
 def report_versions():
-    """Creates a string that reports the version of xdress and all its
+    """Creates a string that reports the version of polyphemus and all its
     dependencies.
     """
     vstr = ("Polyphemus: {polyphemus_version}\n"
