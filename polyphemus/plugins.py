@@ -426,7 +426,7 @@ class Plugins(object):
         rc = self.rc
         if 'app' not in rc:
             self.build_app()
-        rc.app.run(host=rc.host, debug=rc.debug)
+        rc.app.run(host=rc.host, port=rc.port, debug=rc.debug)
 
     def teardown(self):
         """Preforms all plugin teardown tasks."""

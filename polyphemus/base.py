@@ -30,6 +30,7 @@ class PolyphemusPlugin(Plugin):
         version=False,
         bash_completion=True,
         host='0.0.0.0',
+        port=80,
         appname="polyphemus",
         )
 
@@ -44,6 +45,7 @@ class PolyphemusPlugin(Plugin):
                             "This is only relevant when using argcomplete."),
         'host': ("Which urls to host to, ie '0.0.0.0' for everyone or "
                  "'localhost' for yourself"),
+        'port': "The port to run the application on.",
         'appname': "The name of the flask application."
         }
 
@@ -59,12 +61,14 @@ class PolyphemusPlugin(Plugin):
         parser.add_argument('--version', action='store_true', dest='version',
                             help=self.rcdocs["version"])
         parser.add_argument('--host', help=self.rcdocs['host'])
+        parser.add_argument('--port', help=self.rcdocs['port'])
         parser.add_argument('--appname', help=self.rcdocs['appname'])
 
     def setup(self, rc):
         if rc.version:
             print(report_versions())
             sys.exit()
+        rc.port = int(rc.port)
 
     def report_debug(self, rc):
         msg = 'Version Information:\n\n{0}\n\n'
