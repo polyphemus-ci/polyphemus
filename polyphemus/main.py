@@ -38,7 +38,7 @@ if sys.version_info[0] >= 3:
     basestring = str
 
 
-def main():
+def setup():
     """Entry point for polyphemus."""
     warnings.simplefilter('default')
     # Preprocess plugin names, which entails preprocessing the rc file
@@ -73,6 +73,11 @@ def main():
     rc._update(rcdict)
     rc._update([(k, v) for k, v in ns.__dict__.items()])
     plugins.setup()
+    plugins.build_app()
+    return plugins
+
+def main():
+    plugins = setup()
     plugins.run_app()
     plugins.teardown()
 
