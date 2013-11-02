@@ -31,7 +31,6 @@ except ImportError:
 
 from .utils import NotSpecified, RunControl, DEFAULT_RC_FILE, DEFAULT_PLUGINS, \
     exec_file
-from .server import app
 
 from .plugins import Plugins
 

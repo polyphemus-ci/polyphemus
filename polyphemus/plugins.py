@@ -139,13 +139,16 @@ Here is simple, if morbid, plugin example::
 Plugins API
 ===========
 """
+from __future__ import print_function
 import os
 import io
 import sys
+import pprint
 import warnings
 import importlib
 import argparse
 import textwrap
+from functools import wraps
 
 from flask import Flask
 
@@ -257,7 +260,7 @@ class Plugin(object):
             execution pipeline will not be triggered.
 
         """
-        return "", None
+        return "\n", None
 
     def execute(self, rc):
         """Performs the actual work of the plugin, which may require a run controller.
@@ -295,7 +298,6 @@ class Plugin(object):
 
         """
         pass
-
 
 class Plugins(object):
     """This is a class for managing the instantiation and execution of plugins.
@@ -414,14 +416,9 @@ class Plugins(object):
         for plugin in self.plugins:
             if plugin.route is None:
                 continue
-            def routed():
-                rc = self.rc
-                resp, event = plugin.reponse(rc)
-                if event is not None:
-                    rc.event = event
-                    self.execute()
-                return resp
-            app.route(plugin.route, methods=plugin.request_methods)(routed)
+            view = wrap_response(self, plugin)
+            app.add_url_rule(plugin.route, plugin.route[1:], view, 
+                             methods=plugin.request_methods)
         self.rc.app = app
 
     def run_app(self):
@@ -489,3 +486,29 @@ def summarize_rcdocs(modnames, headersep="=", maxdflt=2000):
             moddoc += "\n".join(tw.wrap(rcdoc)) + '\n'
         docstrs.append(moddoc)
     return "\n\n\n".join(docstrs)
+
+def wrap_response(plugins, plugin):
+    """Decorator-like function for wrapping plugin responses.
+
+    Parameters
+    ----------
+    plugins : Plugins
+        The plugins objects from which to take the run controler and 
+        the execution pipeline.
+    plugin : Plugin
+        The plugin object from which to take the response method.
+
+    Returns
+    -------
+    response : function
+        The response proxy function that is bound to plugins and plugin.
+
+    """
+    @wraps(plugin.response)
+    def response():
+        resp, event = plugin.response(plugins.rc)
+        if event is not None:
+            plugins.rc.event = event
+            plugins.execute()
+        return resp
+    return response

@@ -8,9 +8,12 @@ BaTLaB Plugin API
 from __future__ import print_function
 import os
 import sys
+import json
 import pprint
 from tempfile import NamedTemporaryFile
 from warnings import warn
+
+from flask import request
 
 from .utils import RunControl, NotSpecified, writenewonly, \
     DEFAULT_RC_FILE, DEFAULT_PLUGINS, nyansep, indent, check_cmd
@@ -27,15 +30,15 @@ class PolyphemusPlugin(Plugin):
     defaultrc = RunControl(
         )
 
-    route = 'github'
+    route = '/github'
 
     request_methods = ['GET', 'POST']
 
-    def response(self):
-        print request.method
+    def response(self, rc):
+        print(request.method)
         payload = json.loads(request.form['payload'])
-        app.plugins.rc.event = Event(name='github', data=payload)
-        return request.method + ": github"
+        event = Event(name='github', data=payload)
+        return request.method + ": github\n", event
 
 
     @runfor('github')    

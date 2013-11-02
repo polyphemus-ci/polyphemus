@@ -17,7 +17,6 @@ from event import runfor
 from .utils import RunControl, NotSpecified, writenewonly, \
     DEFAULT_RC_FILE, DEFAULT_PLUGINS, nyansep, indent, check_cmd
 from .plugins import Plugin
-#from .version import report_versions
 
 if sys.version_info[0] >= 3:
     basestring = str
@@ -33,6 +32,12 @@ class PolyphemusPlugin(Plugin):
 
     defaultrc = RunControl(
         )
+
+    route = '/batlabrun'
+
+    def response(self, rc):
+        print("I am batlab!")
+        return "No you are batlab!\n", None
 
     @runfor('batlab')
     def execute(self, rc):
