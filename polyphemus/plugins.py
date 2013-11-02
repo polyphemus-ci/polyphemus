@@ -417,7 +417,7 @@ class Plugins(object):
             if plugin.route is None:
                 continue
             view = wrap_response(self, plugin)
-            app.add_url_rule(plugin.route, plugin.route[1:], view, 
+            app.add_url_rule(plugin.route, plugin.__module__, view, 
                              methods=plugin.request_methods)
         self.rc.app = app
 
