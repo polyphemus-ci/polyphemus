@@ -35,11 +35,11 @@ ___  ____ _    _   _ ___  _  _ ____ _  _ _  _ ____
 
 
 sys.path.insert(0, '')
-import ployphemus.version
+import polyphemus.version
 sys.path.pop(0)
 
 INFO = {
-    'version': ployphemus.version.ployphemus_version,
+    'version': polyphemus.version.polyphemus_version,
 }
 
 dir_name = os.path.dirname(os.path.abspath(__file__))
@@ -85,7 +85,7 @@ def setup():
                        "like GitHub.",
         "long_description": long_desc,
         "download_url": ("https://github.com/cyclus/polyphemus/"
-            "zipball/{0}.{1}").format(*ployphemus.version.ployphemus_version_info[:2]),
+            "zipball/{0}.{1}").format(*polyphemus.version.polyphemus_version_info[:2]),
         "classifiers": [
             "License :: OSI Approved :: BSD License",
             "Intended Audience :: Developers",
@@ -112,9 +112,9 @@ def final_message(success=True):
     if success:
         return
     if metadata is not None:
-    msg = "\n\nCURRENT INFO:\n"
-    for k, v in sorted(INFO.items()):
-        msg += "  {0} = {1}\n".format(k, repr(v))
+        msg = "\n\nCURRENT INFO:\n"
+        for k, v in sorted(INFO.items()):
+            msg += "  {0} = {1}\n".format(k, repr(v))
     print(msg)
 
 def main():
@@ -123,7 +123,7 @@ def main():
         main_body()
         success = True
     finally:
-        configure.final_message(success)
+        final_message(success)
 
 if __name__ == "__main__":
     main()
