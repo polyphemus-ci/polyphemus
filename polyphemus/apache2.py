@@ -47,7 +47,7 @@ class PolyphemusPlugin(Plugin):
 
     rcdocs = {
         'apache2_setup': "Sets up polyphemus to run under Apache 2 with mod_wsgi.",
-        'server_name': "The name of the website, e.g. 'polyphemus.org'."
+        'server_name': "The name of the website, e.g. 'polyphemus.org'.",
         'site_conf_file': ("The Apache 2 site configiration file name, defaults to "
                            "'/etc/apache2/sites-available/{server_name}.conf'"),
         'wsgi_file': ("The WSGI script file name, defaults to "
