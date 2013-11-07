@@ -69,6 +69,7 @@ class PolyphemusPlugin(Plugin):
             print(report_versions())
             sys.exit()
         rc.port = int(rc.port)
+        rc.rc = os.path.abspath(rc.rc)
 
     def report_debug(self, rc):
         msg = 'Version Information:\n\n{0}\n\n'

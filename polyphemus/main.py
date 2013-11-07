@@ -38,8 +38,10 @@ if sys.version_info[0] >= 3:
     basestring = str
 
 
-def setup():
-    """Entry point for polyphemus."""
+def setup(**kwargs):
+    """Entry point for polyphemus.  Keyword arguments are interptered as 
+    run control parameters.
+    """
     warnings.simplefilter('default')
     # Preprocess plugin names, which entails preprocessing the rc file
     preparser = argparse.ArgumentParser("Polyphemus-CI", add_help=False)
@@ -56,6 +58,7 @@ def setup():
     prerc = RunControl()
     prerc._update(predefaultrc)
     prerc.rc = prens.rc
+    prerc._update(kwargs)
     rcdict = {}
     if os.path.isfile(prerc.rc):
         exec_file(prerc.rc, rcdict, rcdict)
