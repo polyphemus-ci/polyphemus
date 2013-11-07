@@ -41,7 +41,6 @@ class PolyphemusPlugin(Plugin):
         apache2_setup=False,
         server_name=NotSpecified,
         site_conf_file=NotSpecified,
-        site_conf_file=NotSpecified,
         wsgi_file=NotSpecified,
         )
 
