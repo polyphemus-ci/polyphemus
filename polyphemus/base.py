@@ -56,7 +56,7 @@ class PolyphemusPlugin(Plugin):
         'host': ("Which urls to host to, ie '0.0.0.0' for everyone or "
                  "'localhost' for yourself"),
         'port': "The port to run the application on.",
-        'appname': "The name of the flask application."
+        'appname': "The name of the flask application.",
         'server_url': ("The URL of the server without a trailing slash or port "
                        "number, eg 'http://pynesim.org'. If not provided, it will "
                        "be guessed from your current public IP address."),
@@ -92,7 +92,10 @@ class PolyphemusPlugin(Plugin):
             jsonip = urlopen('http://jsonip.com/')
             ipinfo = json.load(jsonip)
             ipaddr = ipinfo['ip']
-            server_url, aliases, ips = socket.gethostbyaddr(ipaddr)
+            try:
+                server_url, aliases, ips = socket.gethostbyaddr(ipaddr)
+            except socket.herror:
+                server_url, aliases, ips = 'http://' + ipaddr, (), ()
             print("server_url not specified, guessing " + server_url)
             if rc.verbose:
                 print("Other server_url options:\n  " + "\n  ".join(aliases + ips))
