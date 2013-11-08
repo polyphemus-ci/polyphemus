@@ -8,15 +8,24 @@ Base Plugin API
 from __future__ import print_function
 import os
 import sys
+import socket
 from warnings import warn
+
+if sys.version_info[0] >= 3:
+    basestring = str
+    from urllib.request import urlopen
+else:
+    from urllib2 import urlopen
+
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 from .utils import RunControl, NotSpecified, writenewonly, \
     DEFAULT_RC_FILE, DEFAULT_PLUGINS, nyansep, indent
 from .plugins import Plugin
 from .version import report_versions
-
-if sys.version_info[0] >= 3:
-    basestring = str
 
 class PolyphemusPlugin(Plugin):
     """This class provides base functionality for polyhemus itself."""
@@ -32,6 +41,7 @@ class PolyphemusPlugin(Plugin):
         host='0.0.0.0',
         port=80,
         appname="polyphemus",
+        server_url=NotSpecified,
         )
 
     rcdocs = {
@@ -47,6 +57,9 @@ class PolyphemusPlugin(Plugin):
                  "'localhost' for yourself"),
         'port': "The port to run the application on.",
         'appname': "The name of the flask application."
+        'server_url': ("The URL of the server without a trailing slash or port "
+                       "number, eg 'http://pynesim.org'. If not provided, it will "
+                       "be guessed from your current public IP address."),
         }
 
     def update_argparser(self, parser):
@@ -63,6 +76,8 @@ class PolyphemusPlugin(Plugin):
         parser.add_argument('--host', help=self.rcdocs['host'])
         parser.add_argument('--port', help=self.rcdocs['port'])
         parser.add_argument('--appname', help=self.rcdocs['appname'])
+        parser.add_argument('--server-url', dest='server_url', 
+                            help=self.rcdocs["server_url"])
 
     def setup(self, rc):
         if rc.version:
@@ -70,6 +85,23 @@ class PolyphemusPlugin(Plugin):
             sys.exit()
         rc.port = int(rc.port)
         rc.rc = os.path.abspath(rc.rc)
+
+        # set server_url
+        server_url = rc.server_url
+        if server_url is NotSpecified:
+            jsonip = urlopen('http://jsonip.com/')
+            ipinfo = json.load(jsonip)
+            ipaddr = ipinfo['ip']
+            server_url, aliases, ips = socket.gethostbyaddr(ipaddr)
+            print("server_url not specified, guessing " + server_url)
+            if rc.verbose:
+                print("Other server_url options:\n  " + "\n  ".join(aliases + ips))
+        else:
+            if ':' in server_url:
+                server_url = server_url.rsplit(':', 1)[0]
+            elif server_url.endswith('/'):
+                server_url = server_url[:-1]
+        rc.server_url = server_url
 
     def report_debug(self, rc):
         msg = 'Version Information:\n\n{0}\n\n'
