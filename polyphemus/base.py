@@ -100,10 +100,11 @@ class PolyphemusPlugin(Plugin):
             if rc.verbose:
                 print("Other server_url options:\n  " + "\n  ".join(aliases + ips))
         else:
-            if ':' in server_url:
-                server_url = server_url.rsplit(':', 1)[0]
-            elif server_url.endswith('/'):
+            if server_url.endswith('/'):
                 server_url = server_url[:-1]
+        if not server_url.startswith('http://') and \
+           not server_url.startswith('https://'):
+            server_url = 'http://' + server_url
         rc.server_url = server_url
 
     def report_debug(self, rc):
