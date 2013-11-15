@@ -17,6 +17,6 @@ if sys.version_info[0] >= 3:
 class PolyphemusPlugin(Plugin):
     """This class provides functionality for using batlab."""
 
-    requires = ('polyphemus.batlabrun',)
+    requires = ('polyphemus.batlabrun', 'polyphemus.batlabstat')
 
 
