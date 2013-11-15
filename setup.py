@@ -30,6 +30,9 @@ p_logos = ["""
                  `.  .'      `.  /
                    \           .'
                     `-..___..-`
+
+          One eye makes for shallow bugs.
+
 """,
 ]
 
