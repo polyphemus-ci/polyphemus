@@ -29,7 +29,7 @@ class PolyphemusPlugin(Plugin):
     """This class provides basic BaTLab functionality."""
 
     defaultrc = RunControl(
-        'batlab_user': NotSpecified,
+        batlab_user=NotSpecified,
         )
 
     rcdocs = {
