@@ -28,6 +28,8 @@ BATLAB_SUBMIT_HOSTNAME = 'submit-1.batlab.org'
 class PolyphemusPlugin(Plugin):
     """This class provides basic BaTLab functionality."""
 
+    requires = ('polyphemus.base',)
+
     defaultrc = RunControl(
         batlab_user=NotSpecified,
         )
@@ -63,7 +65,7 @@ class PolyphemusPlugin(Plugin):
                                                         BATLAB_SUBMIT_HOSTNAME))
             pub = ssh_pub_key(rc.ssh_key_file)
             cmds = ["mkdir -p ~/.ssh",
-                'cat "{0}" >> ~/.ssh/authorized_keys'.format(pub),
+                'echo "{0}" >> ~/.ssh/authorized_keys'.format(pub),
                 'chmod og-rw ~/.ssh/authorized_keys',
                 'chmod a-x ~/.ssh/authorized_keys',
                 'chmod 700 ~/.ssh',
