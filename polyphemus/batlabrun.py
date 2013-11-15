@@ -64,17 +64,25 @@ class PolyphemusPlugin(Plugin):
         subprocess.check_call(['scp', fetchfile.name, 'cyclusci@submit-1.batlab.org:polyphemus/'])
         fetchfile.close()
 
+
+	batlab_uid='cyclusci@submit-1.batlab.org'
+	test_dir= 'polyphemus;'
+	test_subdir='cyclus_runs'
+	test_deps='CYCLUS fetch CYCAMORE cycamore.polyphemus.run-spec submit.sh'
+	replace_file = 'fetch/cyclus.git'
+	run_spec='cycamore.polyphemus.run-spec'
+	sub_cmd='./submit.sh'
 	#assumes polyphemus on batlab is altered version of main ci dir
-        rtn, out = check_cmd(['ssh', 'cyclusci@submit-1.batlab.org', \
-				'cd', 'polyphemus;', \
-				'git','pull',\
-				'mkdir','cyclus_runs/'+fetchfile.name, \
-				'cp','-R CYCLUS fetch CYCAMORE cycamore.polyphemus.run-spec submit.sh cyclus_runs/'+fetchfile.name, \
-				'mv',fetchfile.name+' cyclus_runs/'+fetchfile.name+'/fetch/cyclus.git', \
-				'rm',' -f '+fetchfile.name, \
-				'cd','cyclus_runs/'+fetchfile.name, \
-                                'echo','"'+curl+'"'+" >>`cat cycamore.polyphemus.run-spec | grep post_all |sed -e 's/ //g' | sed -e 's/post_all=//g'`", \
-				'./submit.sh', 'cyclus.polyphemus.run-spec'])
+        rtn, out = check_cmd(['ssh', batlab_uid, \
+				'cd',test_dir+';', \
+				'git','pull;',\
+				'mkdir',test_subdir+'/'+fetchfile.name+';', \
+				'cp','-R '+test_deps+' '+test_subdir+'/'+fetchfile.name+';', \
+				'mv',fetchfile.name+' 'test_subdir+'/'+fetchfile.name+'/'+replace_file+';', \
+				'rm',' -f '+fetchfile.name+';', \
+				'cd',test_subdir+'/'+fetchfile.name+';', \
+                                'echo','"'+curl+'"'+" >>`cat "+run_spec+" | grep post_all |sed -e 's/ //g' | sed -e 's/post_all=//g'`;", \
+				sub_cmd, run_spec])
         lines = out.splitlines()
         report_url = lines[-1].strip()
         print(report_url)
