@@ -16,4 +16,4 @@ if sys.version_info[0] >= 3:
 class PolyphemusPlugin(Plugin):
     """This class enables all github functionality."""
 
-    requires = ('polyphemus.githubhook',)
+    requires = ('polyphemus.githubhook', 'polyphemus.githubstat')
