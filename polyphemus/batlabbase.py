@@ -13,20 +13,25 @@ import subprocess
 from warnings import warn
 from getpass import getuser, getpass
 
+import paramiko
+
 from .utils import RunControl, NotSpecified, writenewonly, \
     DEFAULT_RC_FILE, DEFAULT_PLUGINS, nyansep, indent, check_cmd
 from .plugins import Plugin
+from .base import ssh_pub_key
 
 if sys.version_info[0] >= 3:
     basestring = str
 
-BATLAB_SUBMIT_URL = 'submit-1.batlab.org'
+BATLAB_SUBMIT_HOSTNAME = 'submit-1.batlab.org'
 
 class PolyphemusPlugin(Plugin):
     """This class provides basic BaTLab functionality."""
 
+    requires = ('polyphemus.base',)
+
     defaultrc = RunControl(
-        'batlab_user': NotSpecified,
+        batlab_user=NotSpecified,
         )
 
     rcdocs = {
@@ -43,3 +48,34 @@ class PolyphemusPlugin(Plugin):
             user = getuser()
             print("batlab username not specified, found {0!r}".format(user))
             rc.batlab_user = user
+
+        # make sure that we can authenticate in the future with SSH public keys
+        client = paramiko.SSHClient()
+        try:
+            client.connect(BATLAB_SUBMIT_HOSTNAME, username=rc.batlab_user, 
+                           key_filename=rc.ssh_key_file)
+            client.close()
+            can_connect = True
+        except paramiko.AuthenticationException:
+            can_connect = False
+        if not can_connect:
+            password = False
+            while not password:
+                password = getpass("{0}@{1} password: ".format(rc.batlab_user, 
+                                                        BATLAB_SUBMIT_HOSTNAME))
+            pub = ssh_pub_key(rc.ssh_key_file)
+            cmds = ["mkdir -p ~/.ssh",
+                'echo "{0}" >> ~/.ssh/authorized_keys'.format(pub),
+                'chmod og-rw ~/.ssh/authorized_keys',
+                'chmod a-x ~/.ssh/authorized_keys',
+                'chmod 700 ~/.ssh',
+                ]
+            client.connect(BATLAB_SUBMIT_HOSTNAME, username=rc.batlab_user, 
+                           password=password)
+            for cmd in cmds:
+                stdin, stdout, stderr = client.exec_command(cmd)
+            client.close()
+            # verify thatthis key works
+            client.connect(BATLAB_SUBMIT_HOSTNAME, username=rc.batlab_user, 
+                           key_filename=rc.ssh_key_file)
+            client.close()

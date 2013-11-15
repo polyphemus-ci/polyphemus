@@ -40,7 +40,7 @@ fi
 class PolyphemusPlugin(Plugin):
     """This class provides functionality for running batlab."""
 
-    reuires = ('polyphemus.batlabbase',)
+    requires = ('polyphemus.batlabbase',)
 
     defaultrc = RunControl(
         )
