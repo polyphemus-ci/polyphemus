@@ -2,7 +2,7 @@
 
 This module is available as an polyphemus plugin by the name ``polyphemus.github``.
 
-BaTLaB Plugin API
+GitHub API
 =================
 """
 from __future__ import print_function
