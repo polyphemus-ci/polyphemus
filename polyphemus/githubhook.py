@@ -94,7 +94,7 @@ def verify_hook(owner, repo, url, events, user=None, credfile='gh.cred'):
         The list GitHub events that this hook should trigger on.  GitHub 
         defaults this to ['pull'] but ['pull_request'] is a more reasonable value.
     user : str, None, or NotSpecified, optional
-        The username to log into github with
+        The username to log into github with.
     credfile : str, optional
         The github credentials file name.
 
@@ -130,6 +130,30 @@ def verify_hook(owner, repo, url, events, user=None, credfile='gh.cred'):
             msg = ("failed to update github webhook for {0}/{1} pointing to {2} with " 
                    "the {3} events").format(owner, repo, url, ", ".join(events))
             raise RuntimeError(msg)
+
+def set_pull_request_status(pr, state, target_url="", description='', user=None, 
+                            credfile='gh.cred'):
+    """Sets a state for every commit associated ith a pull request.
+
+    Parameters
+    ----------
+    state : str
+        Accepted values are ‘pending’, ‘success’, ‘error’, ‘failure’.
+    target_url : str, optional
+        URL to link with this status.
+    description : str, optional
+        Flavor text.
+    user : str, None, or NotSpecified, optional
+        The username to log into github with.
+    credfile : str, optional
+        The github credentials file name.
+
+    """
+    gh = GitHub()
+    ensure_logged_in(gh, user=user, credfile=credfile)
+    r = gh.repository(*pr.repository)
+    status = r.create_status(pr.head.sha, state=state, target_url=target_url, 
+                             description=description)    
 
 class PolyphemusPlugin(Plugin):
     """This class provides functionality for getting data from github."""
@@ -194,11 +218,14 @@ class PolyphemusPlugin(Plugin):
             # but we only care about "opened" and "synchronize".
             return "\n", None
         gh = GitHub()
-        data = gh.pull_request(rc.github_owner, rc.github_repo, rawdata['number'])
-        event = Event(name=self._action_to_event[action], data=data)
+        pr = gh.pull_request(rc.github_owner, rc.github_repo, rawdata['number'])
+        event = Event(name=self._action_to_event[action], data=pr)
         return request.method + ": github\n", event
 
     @runfor(*_action_to_event.values())
     def execute(self, rc):
         event = rc.event
-        pprint.pprint(event.data)
+        pr = event.data
+        set_pull_request_status(pr, 'pending', target_url="", 
+            description='patience, discipline', 
+            user=rc.github_user, credfile=rc.github_credentials)
