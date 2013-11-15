@@ -182,15 +182,23 @@ class PolyphemusPlugin(Plugin):
         verify_hook(rc.github_owner, rc.github_repo, hookurl, rc.github_events, 
                     user=rc.github_user, credfile=rc.github_credentials)
 
+    _action_to_event = {'opened': 'github-pr-new', 'synchronize': 'github-pr-sync'}
+
     def response(self, rc):
-        print("computing response")
-        print("request:", request.form.keys())
-        data = github3.events.Event.from_json(json.loads(request.form['payload']))
-        print("made data:", data)
-        event = Event(name='github', data=data)
+        rawdata = json.loads(request.data)
+        if 'pull_request' not in rawdata:
+            return "\n", None
+        action = rawdata['action']
+        if action not in self._action_to_event:
+            # Can be one of “opened”, “closed”, “synchronize”, or “reopened”, 
+            # but we only care about "opened" and "synchronize".
+            return "\n", None
+        gh = GitHub()
+        data = gh.pull_request(rc.github_owner, rc.github_repo, rawdata['number'])
+        event = Event(name=self._action_to_event[action], data=data)
         return request.method + ": github\n", event
 
-    @runfor('github')    
+    @runfor(*_action_to_event.values())
     def execute(self, rc):
         event = rc.event
         pprint.pprint(event.data)
