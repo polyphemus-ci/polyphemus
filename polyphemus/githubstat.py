@@ -43,6 +43,10 @@ class PolyphemusPlugin(Plugin):
 
     @runfor('batlab-status')
     def execute(self, rc):
+        """The githubstat plugin is only executed for 'batlab-status' events and 
+        requires that the event data be a dictionary with 'status' and 'number' as
+        keys.  It optionally may also include 'target_url' and 'description' keys.
+        """
         data = rc.event.data
         pr = (rc.github_owner, rc.github_repo, data['number'])
         set_pull_request_status(pr, data['status'], 

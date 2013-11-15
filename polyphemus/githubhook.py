@@ -121,6 +121,10 @@ class PolyphemusPlugin(Plugin):
 
     @runfor(*_action_to_event.values())
     def execute(self, rc):
+        """The github hook plugin is executed for 'github-pr-new' and 'github-pr-sync'
+        events.  The event data must be either a github3 PullRequest object or a
+        tuple of the form (owner, repository, number).
+        """
         event = rc.event
         pr = event.data
         set_pull_request_status(pr, 'pending', target_url="", 
