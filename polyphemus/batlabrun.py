@@ -65,15 +65,15 @@ class PolyphemusPlugin(Plugin):
         fetchfile.close()
 
 	#assumes polyphemus on batlab is altered version of main ci dir
-        rtn, out = check_cmd(['ssh', 'cyclusci@submit-1.batlab.org', 
-				'cd', 'polyphemus;', 
-				'git','pull',
-				'mkdir','cyclus_runs/'+fetchfile.name,
-				'cp','-R CYCLUS fetch CYCAMORE cycamore.polyphemus.run-spec submit.sh cyclus_runs/'+fetchfile.name,
-				'mv',fetchfile.name+' cyclus_runs/'+fetchfile.name+'/fetch/cyclus.git'  
-				'rm',' -f '+fetchfile.name,
-				'cd','cyclus_runs/'+fetchfile.name,
-                                'echo','"'+curl+'"'+" >>`cat cycamore.polyphemus.run-spec | grep post_all |sed -e 's/ //g' | sed -e 's/post_all=//g'`",
+        rtn, out = check_cmd(['ssh', 'cyclusci@submit-1.batlab.org', \
+				'cd', 'polyphemus;', \
+				'git','pull',\
+				'mkdir','cyclus_runs/'+fetchfile.name, \
+				'cp','-R CYCLUS fetch CYCAMORE cycamore.polyphemus.run-spec submit.sh cyclus_runs/'+fetchfile.name, \
+				'mv',fetchfile.name+' cyclus_runs/'+fetchfile.name+'/fetch/cyclus.git', \
+				'rm',' -f '+fetchfile.name, \
+				'cd','cyclus_runs/'+fetchfile.name, \
+                                'echo','"'+curl+'"'+" >>`cat cycamore.polyphemus.run-spec | grep post_all |sed -e 's/ //g' | sed -e 's/post_all=//g'`", \
 				'./submit.sh', 'cyclus.polyphemus.run-spec'])
         lines = out.splitlines()
         report_url = lines[-1].strip()
