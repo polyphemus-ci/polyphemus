@@ -74,7 +74,6 @@ def ensure_logged_in(gh, user=None, credfile='gh.cred'):
         print("github username not specified, found {0!r}".format(user))
     if not os.path.isfile(credfile):
         gh_make_token(gh, user, credfile=credfile)
-        return 
     with io.open(credfile, 'r') as f:
         token = f.readline().strip()  
         id = f.readline().strip()
