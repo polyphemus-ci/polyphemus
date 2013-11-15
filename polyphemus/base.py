@@ -6,6 +6,7 @@ Base Plugin API
 ===============
 """
 from __future__ import print_function
+import re
 import os
 import sys
 import socket
@@ -26,6 +27,8 @@ from .utils import RunControl, NotSpecified, writenewonly, \
     DEFAULT_RC_FILE, DEFAULT_PLUGINS, nyansep, indent
 from .plugins import Plugin
 from .version import report_versions
+
+ENDS_PORT_RE = re.compile('(.*)(:)(\d+)')
 
 class PolyphemusPlugin(Plugin):
     """This class provides base functionality for polyhemus itself."""
@@ -102,6 +105,9 @@ class PolyphemusPlugin(Plugin):
         else:
             if server_url.endswith('/'):
                 server_url = server_url[:-1]
+            m = ENDS_PORT_RE.match(server_url)
+            if m is not None:
+                server_url = m.group(1)
         if not server_url.startswith('http://') and \
            not server_url.startswith('https://'):
             server_url = 'http://' + server_url
