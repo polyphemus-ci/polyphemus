@@ -50,7 +50,10 @@ class PolyphemusPlugin(Plugin):
             rc.batlab_user = user
 
         # make sure that we can authenticate in the future with SSH public keys
+        key = paramiko.RSAKey(filename=rc.ssh_key_file)
         client = paramiko.SSHClient()
+        client.load_system_host_keys()
+        client.get_host_keys().add(BATLAB_SUBMIT_HOSTNAME, 'ssh-rsa', key)
         try:
             client.connect(BATLAB_SUBMIT_HOSTNAME, username=rc.batlab_user, 
                            key_filename=rc.ssh_key_file)
@@ -79,3 +82,5 @@ class PolyphemusPlugin(Plugin):
             client.connect(BATLAB_SUBMIT_HOSTNAME, username=rc.batlab_user, 
                            key_filename=rc.ssh_key_file)
             client.close()
+            print("finished connecting")
+        client.close()  # Just to be safe
