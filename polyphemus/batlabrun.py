@@ -26,6 +26,16 @@ fetch_template = \
 git_repo = {repo}
 git_path = cyclus;cd cyclus;git checkout {branch}
 """
+curl_template= \
+"""
+if [ -z $_NMI_STEP_FAILED ]
+then
+curl --data "$_NMI_GID Succeeded"  {ip}:{port}
+else
+curl --data "$_NMI_GID Failed"  {ip}:{port}
+fi
+"""
+
 
 class PolyphemusPlugin(Plugin):
     """This class provides functionality for running batlab."""
@@ -45,13 +55,26 @@ class PolyphemusPlugin(Plugin):
     def execute(self, rc):
         fetch = fetch_template.format(repo="git://github.com/cyclus/cyclus", 
                                       branch="staging")
+
+	curl = curl_template.format(ip='198.101.154.53',port='5000')
+
         fetchfile = NamedTemporaryFile()
         fetchfile.write(fetch)
         fetchfile.flush()
-        subprocess.check_call(['scp', fetchfile.name, 'cyclusci@submit-1.batlab.org:polyphemus/fetch/cyclus.git'])
+        subprocess.check_call(['scp', fetchfile.name, 'cyclusci@submit-1.batlab.org:polyphemus/'])
         fetchfile.close()
 
-        rtn, out = check_cmd(['ssh', 'cyclusci@submit-1.batlab.org', 'cd', 'polyphemus;', 'nmi_submit', 'cyclus.run-spec'])
+	#assumes polyphemus on batlab is altered version of main ci dir
+        rtn, out = check_cmd(['ssh', 'cyclusci@submit-1.batlab.org', 
+				'cd', 'polyphemus;', 
+				'git','pull',
+				'mkdir','cyclus_runs/'+fetchfile.name,
+				'cp','-R CYCLUS fetch CYCAMORE cycamore.polyphemus.run-spec submit.sh cyclus_runs/'+fetchfile.name,
+				'mv',fetchfile.name+' cyclus_runs/'+fetchfile.name+'/fetch/cyclus.git'  
+				'rm',' -f '+fetchfile.name,
+				'cd','cyclus_runs/'+fetchfile.name,
+                                'echo','"'+curl+'"'+" >>`cat cycamore.polyphemus.run-spec | grep post_all |sed -e 's/ //g' | sed -e 's/post_all=//g'`",
+				'./submit.sh', 'cyclus.polyphemus.run-spec'])
         lines = out.splitlines()
         report_url = lines[-1].strip()
         print(report_url)
