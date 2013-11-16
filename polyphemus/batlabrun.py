@@ -167,7 +167,7 @@ class PolyphemusPlugin(Plugin):
             cmds = unzip_cmds_template.format(jobdir=jobdir, 
                     batlab_scripts_url=rc.batlab_scripts_url).splitlines()
             rtns = list(map(client.exec_command, cmds))
-            ls = rtns[-1][0].split()
+            ls = rtns[-1][1].read().split()
             if len(ls) == 1:
                 client.exec_command('mv {0}/{1}/* {0}'.format(jobdir, ls[0]))
         else:
@@ -182,7 +182,7 @@ class PolyphemusPlugin(Plugin):
 
         # append callbacks to run spec
         _, x, _ = client.exec_command('cat {0}/{1}'.format(jobdir, rc.batlab_run_spec))
-        run_spec_lines = [l.strip() for l in x.splitlines()]
+        run_spec_lines = [l.strip() for l in x.read().splitlines()]
         pre_file = _ensure_task_script('pre_all', run_spec_lines, rc.batlab_run_spec, 
                                        jobdir, client)
         pre_curl = pre_curl_template.format(number=pr.number, port=rc.port, 
@@ -201,10 +201,10 @@ class PolyphemusPlugin(Plugin):
         client.exec_command('cd ${HOME}')
 
         # clean up
-        client.close()
-        lines = submitout.out.splitlines()
+        lines = submitout.read().splitlines()
         report_url = lines[-1].strip()
         gid = lines[0].split()[-1]
+        client.close()
         jobs[job] = {'gid': gid, 'report_url': report_url, 'dir': jobdir}
         if rc.verbose:
             print("BaTLab reporting link: " + report_url)
