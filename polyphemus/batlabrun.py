@@ -29,12 +29,16 @@ git_repo = {repo_url}
 git_path = {repo_dir};cd {repo_dir};git checkout {branch}
 """
 
-curl_template = \
-"""if [ -z $_NMI_STEP_FAILED ]
+pre_curl_template = r"""# polyphemus pre_all callback
+curl --data '{{"status": "pending", "number": {number}, "description": "build and test initialized"}}' {server_url}:{port}/batlabstatus
+"""
+
+post_curl_template = """# polyphemus post_all callbacks
+if [ -z $_NMI_STEP_FAILED ]
 then
-    curl --data "$_NMI_GID Succeeded"  {server_url}:{port}/batlabstatus
+    curl --data '{{"status": "success", "number": {number}, "description": "build and test completed successfully"}}' {server_url}:{port}/batlabstatus
 else
-    curl --data "$_NMI_GID Failed"  {server_url}:{port}/batlabstatus
+    curl --data '{{"status": "failure", "number": {number}, "description": "build and test failed"}}' {server_url}:{port}/batlabstatus
 fi
 """
 
@@ -43,6 +47,29 @@ unzip_cmds_template = \
 unzip -d {jobdir} batlab_scripts.zip
 rm batlab_scripts.zip
 ls {jobdir}"""
+
+def _find_startswith(x, s):
+    """Finds the index of a sequence that starts with s or returns -1.
+    """
+    for i, elem in enumerate(x):
+        if elem.startswith(s):
+            return i
+    return -1
+
+def _ensure_task_script(task, run_spec_lines, run_spec_path, jobdir, client):
+    i = _find_startswith(run_spec_lines, task)
+    if i >= 0:
+        task_file = run_spec_lines[i].split('=', 1)[1].strip()
+    else:
+        task_file = '{0}/{1}.sh'.format(jobdir, task)
+        client.exec_command('touch ' + task_file)
+        client.exec_command('chmod 755 ' + task_file)
+        client.exec_command('echo "{0} = {1}" >> {2}/{3}'.format(task, task_file, 
+                                                          jobdir, run_spec_path))
+    if not os.path.isabs(task_file) and not task_file.startswith('$'):
+        task_file = jobdir + '/' + task_file
+    return task_file
+
 
 class PolyphemusPlugin(Plugin):
     """This class provides functionality for running batlab."""
@@ -108,8 +135,6 @@ class PolyphemusPlugin(Plugin):
         job = pr.repository + (pr.number,)  # job key (owner, repo, number) 
         jobdir = "${HOME}/" + "--".join(*job)
 
-        curl = curl_template.format(server_url=rc.server_url, port=rc.port)
-
         # connect to batlab
         key = paramiko.RSAKey(filename=rc.ssh_key_file)
         client = paramiko.SSHClient()
@@ -157,7 +182,19 @@ class PolyphemusPlugin(Plugin):
         client.exec_command(cmd)
 
         # append callbacks to run spec
-        client.exec_command('echo "' + curl+'"'+" >>`cat "+rc.run_spec+" | grep post_all | sed -e 's/ //g' | sed -e 's/post_all=//g'`")
+        _, x, _ = client.exec_command('cat {0}/{1}'.format(jobdir, rc.batlab_run_spec))
+        run_spec_lines = [l.strip() for l in x.splitlines()]
+        pre_file = _ensure_task_script('pre_all', run_spec_lines, rc.batlab_run_spec, 
+                                       jobdir, client)
+        pre_curl = pre_curl_template.format(number=pr.number, port=rc.port, 
+                                            server_url=rc.server_url)
+        client.exec_command('echo "{0}" >> {1}'.format(pre_curl, pre_file))
+        post_file = _ensure_task_script('post_all', run_spec_lines, rc.batlab_run_spec,
+                                        jobdir, client)
+        post_curl = post_curl_template.format(number=pr.number, port=rc.port, 
+                                              server_url=rc.server_url)
+        client.exec_command('echo "{0}" >> {1}'.format(post_curl, post_file))
+
 
         # submit the job
         client.exec_command('cd ' + jobdir)
