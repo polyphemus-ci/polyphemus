@@ -14,7 +14,8 @@ import functools
 import subprocess
 from copy import deepcopy
 from pprint import pformat
-from collections import Mapping, Iterable, Hashable, Sequence, namedtuple
+from collections import Mapping, Iterable, Hashable, Sequence, namedtuple, \
+    MutableMapping
 from hashlib import md5
 from warnings import warn
 try:
@@ -400,7 +401,7 @@ def check_cmd(args):
 # Persisted Cache
 #
 
-class PersistentCache(object):
+class PersistentCache(MutableMapping):
     """A quick persistent cache."""
 
     def __init__(self, cachefile='cache.pkl'):
@@ -417,6 +418,12 @@ class PersistentCache(object):
         else:
             self.cache = {}
 
+    def __len__(self):
+        return len(self.cache)
+
+    def __contains__(self, key):
+        return key in self.cache
+
     def __getitem__(self, key):
         return self.cache[key]  # return the results of the finder only
 
@@ -427,6 +434,10 @@ class PersistentCache(object):
     def __delitem__(self, key):
         del self.cache[key]
         self.dump()
+
+    def __iter__(self):
+        for key in self.cache.keys():
+            yield key
 
     def dump(self):
         """Writes the cache out to the filesystem."""
