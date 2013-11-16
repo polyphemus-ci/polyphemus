@@ -28,7 +28,8 @@ if sys.version_info[0] >= 3:
 DEFAULT_RC_FILE = "polyphemusrc.py"
 """Default run control file name."""
 
-DEFAULT_PLUGINS = ('polyphemus.base', 'polyphemus.github', 'polyphemus.batlab')
+DEFAULT_PLUGINS = ('polyphemus.base', 'polyphemus.githubhook', 'polyphemus.batlabrun', 
+                   'polyphemus.batlabstat', 'polyphemus.githubstat')
 """Default list of plugin module names."""
 
 FORBIDDEN_NAMES = frozenset(['del', 'global'])
@@ -393,3 +394,48 @@ def check_cmd(args):
     out = f.read()
     f.close()
     return rtn, out
+
+
+#
+# Persisted Cache
+#
+
+class PersistentCache(object):
+    """A quick persistent cache."""
+
+    def __init__(self, cachefile='cache.pkl'):
+        """Parameters
+        -------------
+        cachefile : str, optional
+            Path to description cachefile.
+
+        """
+        self.cachefile = cachefile
+        if os.path.isfile(cachefile):
+            with io.open(cachefile, 'rb') as f:
+                self.cache = pickle.load(f)
+        else:
+            self.cache = {}
+
+    def __getitem__(self, key):
+        return self.cache[key]  # return the results of the finder only
+
+    def __setitem__(self, key, value):
+        self.cache[key] = value
+        self.dump()
+
+    def __delitem__(self, key):
+        del self.cache[key]
+        self.dump()
+
+    def dump(self):
+        """Writes the cache out to the filesystem."""
+        if not os.path.exists(self.cachefile):
+            pardir = os.path.split(self.cachefile)[0]
+            if not os.path.exists(pardir):
+                os.makedirs(pardir)
+        with io.open(self.cachefile, 'wb') as f:
+            pickle.dump(self.cache, f, pickle.HIGHEST_PROTOCOL)
+
+    def __str__(self):
+        return pformat(self.cache)
