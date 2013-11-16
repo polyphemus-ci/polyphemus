@@ -203,11 +203,11 @@ class PolyphemusPlugin(Plugin):
         client.exec_command('cd ${HOME}')
 
         # clean up
+        client.close()
         lines = submitout.out.splitlines()
         report_url = lines[-1].strip()
         gid = lines[0].split()[-1]
         jobs[job] = {'gid': gid, 'report_url': report_url, 'dir': jobdir}
-        client.close()
         if rc.verbose:
             print("BaTLab reporting link: " + report_url)
 
