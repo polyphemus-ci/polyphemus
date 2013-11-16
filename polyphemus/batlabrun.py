@@ -9,10 +9,10 @@ from __future__ import print_function
 import os
 import sys
 import socket
-from tempfile import NamedTemporaryFile
 import subprocess
 from warnings import warn
 
+import github3
 import paramiko
 
 from .utils import RunControl, NotSpecified, PersistentCache
@@ -23,10 +23,10 @@ from .batlabbase import BATLAB_SUBMIT_HOSTNAME
 if sys.version_info[0] >= 3:
     basestring = str
 
-fetch_template = \
+git_fetch_template = \
 """method = git
-git_repo = {repo}
-git_path = cyclus;cd cyclus;git checkout {branch}
+git_repo = {repo_url}
+git_path = {repo_dir};cd {repo_dir};git checkout {branch}
 """
 
 curl_template = \
@@ -54,11 +54,8 @@ class PolyphemusPlugin(Plugin):
         batlab_submit_cmd='nmi_submit',
         batlab_kill_cmd='nmi_rm',
         batlab_scripts_url=NotSpecified,
-        test_dir= 'polyphemus;',
-        test_subdir='cyclus_runs',
-        test_deps='CYCLUS fetch CYCAMORE cycamore.polyphemus.run-spec submit.sh',
-        replace_file = 'fetch/cyclus.git',
-        run_spec='cycamore.polyphemus.run-spec',
+        batlab_fetch_file=NotSpecified,
+        batlab_run_spec=NotSpecified,
         )
 
     rcdocs = {
@@ -70,6 +67,13 @@ class PolyphemusPlugin(Plugin):
                                "git repository and the whole repo is cloned.  If "
                                "this ends in '.zip' then the URL is downloaded and "
                                "unpacked."),
+        'batlab_fetch_file': ("The fetch file that is used by BaTLab to grab the "
+                              "project source code.  This file will be overwritten "
+                              "by polyphemus. This should be a relative path from "
+                              "the base of the batlab_scripts_url dir."),
+        'batlab_run_spec': ("The top level *.run-spec file that is submitted to "
+                            "BaTLab. This should be a relative path from "
+                            "the base of the batlab_scripts_url dir."),
         }
 
     def update_argparser(self, parser):
@@ -81,6 +85,10 @@ class PolyphemusPlugin(Plugin):
                             help=self.rcdocs["batlab_kill_cmd"])
         parser.add_argument('--batlab-scripts-url', dest='batlab_scripts_url',
                             help=self.rcdocs["batlab_scripts_url"])
+        parser.add_argument('--batlab-fetch-file', dest='batlab_fetch_file',
+                            help=self.rcdocs["batlab_fetch_file"])
+        parser.add_argument('--batlab-run-spec', dest='batlab_run_spec',
+                            help=self.rcdocs["batlab_run_spec"])
 
     def setup(self, rc):
         if rc.batlab_scripts_url is NotSpecified:
@@ -89,20 +97,18 @@ class PolyphemusPlugin(Plugin):
                 rc.batlab_scripts_url.endswith('.zip')):
             raise ValueError("batlab_scripts_url must end in '.git' or '.zip', "
                              "found {0!r}".format(rc.batlab_scripts_url))
+        if rc.batlab_fetch_file is NotSpecified:
+            raise ValueError('batlab_fetch_file must be provided!')
+        if rc.batlab_run_spec is NotSpecified:
+            raise ValueError('batlab_run_spec must be provided!')
     
     @runfor('github-pr-new', 'github-pr-sync')
     def execute(self, rc):
         pr = rc.event.data  # pull request object
         job = pr.repository + (pr.number,)  # job key (owner, repo, number) 
         jobdir = "${HOME}/" + "--".join(*job)
-        fetch = fetch_template.format(repo="git://github.com/cyclus/cyclus", 
-                                      branch="staging")
 
         curl = curl_template.format(server_url=rc.server_url, port=rc.port)
-
-        fetchfile = NamedTemporaryFile()
-        fetchfile.write(fetch)
-        fetchfile.flush()
 
         # connect to batlab
         key = paramiko.RSAKey(filename=rc.ssh_key_file)
@@ -143,26 +149,28 @@ class PolyphemusPlugin(Plugin):
         else:
             raise ValueError("rc.batlab_scripts_url not understood.")
 
-        # FIXME SSHClient does not have a put() method.
-        # use echo "..." >> filename instead
-        #client.put(fetchfile.name, rc.test_dir)
+        # Overwrite fetch file
+        head_repo = github3.repository(*pr.head.repo)
+        fetch = git_fetch_template.format(repo_url=head_repo.clone_url,
+                                          repo_dir=job[1], branch=pr.head.label)
+        cmd = 'echo "{0}" > {1}/{2}'.format(fetch, jobdir, rc.batlab_fetch_file)
+        client.exec_command(cmd)
 
-        client.exec_command('cd ' + rc.test_dir)
-        client.exec_command('git pull')
-        client.exec_command('mkdir '+rc.test_subdir+'/'+fetchfile.name)
-        client.exec_command('cp -R '+rc.test_deps+' '+rc.test_subdir+'/'+fetchfile.name)
-        client.exec_command('mv '+fetchfile.name+' 'rc.test_subdir+'/'+fetchfile.name+'/'+rc.replace_file)
-        client.exec_command('rm -f '+fetchfile.name)
-        client.exec_command('cd '+rc.test_subdir+'/'+fetchfile.name)
-        client.exec_command( 'echo "' + curl+'"'+" >>`cat "+rc.run_spec+" | grep post_all |sed -e 's/ //g' | sed -e 's/post_all=//g'`")
-        stdin, stdout, stderr = client.exec_command(rc.sub_cmd+' '+rc.run_spec)
+        # append callbacks to run spec
+        client.exec_command('echo "' + curl+'"'+" >>`cat "+rc.run_spec+" | grep post_all | sed -e 's/ //g' | sed -e 's/post_all=//g'`")
 
-        lines = stdout.out.splitlines()
+        # submit the job
+        client.exec_command('cd ' + jobdir)
+        _, submitout, _ = client.exec_command('{0} {1}'.format(rc.batlab_submit_cmd,
+                                                               rc.batlab_run_spec)
+        client.exec_command('cd ${HOME}')
+
+        # clean up
+        lines = submitout.out.splitlines()
         report_url = lines[-1].strip()
         gid = lines[0].split()[-1]
         jobs[job] = {'gid': gid, 'report_url': report_url, 'dir': jobdir}
         client.close()
-        print(report_url)
+        if rc.verbose:
+            print("BaTLab reporting link: " + report_url)
 
-
-        fetchfile.close()
