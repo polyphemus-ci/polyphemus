@@ -134,6 +134,7 @@ class PolyphemusPlugin(Plugin):
         pr = rc.event.data  # pull request object
         job = pr.repository + (pr.number,)  # job key (owner, repo, number) 
         jobdir = "${HOME}/" + "--".join(*job)
+        jobs = PersistentCache(cachefile=rc.batlab_jobs_cache)
 
         # connect to batlab
         key = paramiko.RSAKey(filename=rc.ssh_key_file)
@@ -150,9 +151,6 @@ class PolyphemusPlugin(Plugin):
             rc.event = Event(name='batlab-status', data={'status': 'error', 
                              'number': pr.number, 'description': msg})
             return
-
-        # get cache
-        jobs = PersistentCache(cachefile=rc.batlab_jobs_cache)
 
         # if sync event, kill an existing job.
         if rc.event.name == 'github-pr-sync' and job in jobs:
@@ -194,7 +192,6 @@ class PolyphemusPlugin(Plugin):
         post_curl = post_curl_template.format(number=pr.number, port=rc.port, 
                                               server_url=rc.server_url)
         client.exec_command('echo "{0}" >> {1}'.format(post_curl, post_file))
-
 
         # submit the job
         client.exec_command('cd ' + jobdir)
