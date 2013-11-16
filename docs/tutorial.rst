@@ -4,7 +4,7 @@
 Tutorial
 *******************
 Polyphemus is a continuous integration tool that ties together services like 
-GitHub to the build & test laboratory (BaTLab).  
+GitHub to the build & test laboratory (BaTLab). 
 
 
 =======================
