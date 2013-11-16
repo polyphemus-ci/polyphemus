@@ -111,7 +111,7 @@ class PolyphemusPlugin(Plugin):
             return "\n", None
         action = rawdata['action']
         if action not in self._action_to_event:
-            # Can be one of “opened”, “closed”, “synchronize”, or “reopened”, 
+            # Can be one of 'opened', 'closed', 'synchronize', or 'reopened', 
             # but we only care about "opened" and "synchronize".
             return "\n", None
         gh = GitHub()

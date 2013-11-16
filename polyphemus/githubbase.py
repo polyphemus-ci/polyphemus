@@ -35,6 +35,7 @@ from .event import Event, runfor
 
 def gh_make_token(gh, user, credfile='gh.cred'):
     """Creates a github token for the user.
+
     Parameters
     ----------
     gh : GitHub object
@@ -86,7 +87,7 @@ def set_pull_request_status(pr, state, target_url="", description='', user=None,
     pr : PullRequest or len-3 sequence
         A github3 pull request object or a tuple of (owner, repository, number).
     state : str
-        Accepted values are ‘pending’, ‘success’, ‘error’, ‘failure’.
+        Accepted values are 'pending', 'success', 'error', 'failure'.
     target_url : str, optional
         URL to link with this status.
     description : str, optional
