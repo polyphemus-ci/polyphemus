@@ -53,13 +53,17 @@ class PolyphemusPlugin(Plugin):
         key = paramiko.RSAKey(filename=rc.ssh_key_file)
         client = paramiko.SSHClient()
         client.load_system_host_keys()
-        client.get_host_keys().add(BATLAB_SUBMIT_HOSTNAME, 'ssh-rsa', key)
+	client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        #client.get_host_keys().add(BATLAB_SUBMIT_HOSTNAME, 'ssh-rsa', key)
         try:
             client.connect(BATLAB_SUBMIT_HOSTNAME, username=rc.batlab_user, 
                            key_filename=rc.ssh_key_file)
             client.close()
             can_connect = True
-        except (paramiko.AuthenticationException, paramiko.BadHostKeyException):
+        except paramiko.AuthenticationException:
+            can_connect = False
+        except paramiko.BadHostKeyException:
+            import pdb; pdb.set_trace()
             can_connect = False
         if not can_connect:
             password = False
