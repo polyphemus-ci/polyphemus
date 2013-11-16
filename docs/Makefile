@@ -14,7 +14,7 @@ PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 DOCREPONAME = polyphemus-ci.github.io
-DOCREPOURL  = git@github.com:polphemus-ci/polyphemus-ci.github.io.git
+DOCREPOURL  = git@github.com:polyphemus-ci/polyphemus-ci.github.io.git
 
 .PHONY: help clean html dirhtml pickle json htmlhelp qthelp latex changes linkcheck doctest
 

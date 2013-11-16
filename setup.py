@@ -59,8 +59,10 @@ long_desc = "\n".join([l for l in long_desc.splitlines()
 def setup():
     try:
         from setuptools import setup as setup_
+        have_setuptools = True
     except ImportError:
         from distutils.core import setup as setup_
+        have_setuptools = False
 
     scripts_dir = os.path.join(dir_name, 'scripts')
     if os.name == 'nt':
@@ -100,7 +102,14 @@ def setup():
             "Topic :: Software Development :: Testing", 
             ],
         "data_files": [("", ['license']),],
-    }
+        }
+    if have_setuptools:
+        setup_kwargs['install_requires'] = [
+            'Flask >= 0.10.1',
+            'paramiko >= 1.10.0',
+            'scp >= 0.6.0',
+            'github3.py >= 0.7.1',
+            ]
     # changing dirs for virtualenv
     cwd = os.getcwd()
     os.chdir(dir_name)
