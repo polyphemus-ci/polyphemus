@@ -133,7 +133,7 @@ class PolyphemusPlugin(Plugin):
     def execute(self, rc):
         pr = rc.event.data  # pull request object
         job = pr.repository + (pr.number,)  # job key (owner, repo, number) 
-        jobdir = "${HOME}/" + "--".join(job)
+        jobdir = "${HOME}/" + "--".join(pr.repository + (str(pr.number),))
         jobs = PersistentCache(cachefile=rc.batlab_jobs_cache)
 
         # connect to batlab
