@@ -1,8 +1,16 @@
-Polyphemus
-==========
+Polyphemus-CI
+=============
 
-One eye makes for shallow bugs
-------------------------------
+.. raw:: html 
+
+    <p style="text-align:center;">
+    <span style="font-family:Times;font-size:28px;font-style:normal;font-weight:normal;text-decoration:none;text-transform:none;font-variant:small-caps;color:000000;">
+    <br />
+    ~ One eye makes for shallow bugs ~
+    <br />
+    <br />
+    </span>
+    </p>
 
 Polyphemus is a continuous integration tool that front-ends to 
 `GitHub <https://github.com/>`_ et al. and backends to 
@@ -10,9 +18,9 @@ Polyphemus is a continuous integration tool that front-ends to
 or the GitHub plugin for Jenkins.  However, BaTLab has a wider vareity of machines
 than Travis-CI and is cheaper (free) than running your own machines with Jenkins.
 
---------
+=========
 Contents
---------
+=========
 
 .. toctree::
     :maxdepth: 1

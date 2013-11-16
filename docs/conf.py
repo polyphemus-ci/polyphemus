@@ -88,12 +88,12 @@ exclude_trees = []
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-#pygments_style = 'sphinx'
+pygments_style = 'sphinx'
 #pygments_style = 'friendly'
 #pygments_style = 'bw'
 #pygments_style = 'fruity'
 #pygments_style = 'manni'
-pygments_style = 'tango'
+#pygments_style = 'tango'
 #pygments_style = 'pastie'
 
 # A list of ignored prefixes for module index sorting.
@@ -114,7 +114,10 @@ html_theme = 'cloud'
 # documentation.
 html_theme_options = {
     'max_width': '1250px',
+    'relbarbgcolor': '#000000',
+    'footerbgcolor': '#FFFFE7',
     'sidebarwidth': '322px',
+    'sidebarbgcolor': '#e7e7ff', 
     #'googleanalytics_id': 'UA-41934829-1',
     }
 
