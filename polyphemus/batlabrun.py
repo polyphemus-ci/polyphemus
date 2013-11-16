@@ -15,8 +15,7 @@ from warnings import warn
 from event import runfor
 
 import paramiko
-from .utils import RunControl, NotSpecified, writenewonly, \
-    DEFAULT_RC_FILE, DEFAULT_PLUGINS, nyansep, indent, check_cmd
+from .utils import RunControl, NotSpecified
 from .plugins import Plugin
 
 if sys.version_info[0] >= 3:
@@ -27,9 +26,9 @@ fetch_template = \
 git_repo = {repo}
 git_path = cyclus;cd cyclus;git checkout {branch}
 """
-curl_template= \
-"""
-if [ -z $_NMI_STEP_FAILED ]
+
+curl_template = \
+"""if [ -z $_NMI_STEP_FAILED ]
 then
     curl --data "$_NMI_GID Succeeded"  {ip}:{port}/batlabstatus
 else
@@ -42,28 +41,18 @@ jobs = {}
 class PolyphemusPlugin(Plugin):
     """This class provides functionality for running batlab."""
 
-
-
     requires = ('polyphemus.batlabbase',)
 
     defaultrc = RunControl(
-        batlab_user='cyclusci',
         test_dir= 'polyphemus;',
         test_subdir='cyclus_runs',
         test_deps='CYCLUS fetch CYCAMORE cycamore.polyphemus.run-spec submit.sh',
         replace_file = 'fetch/cyclus.git',
         run_spec='cycamore.polyphemus.run-spec',
         sub_cmd='./submit.sh',      
-        ssh_key_file='~/.ssh/id_rsa')
+        )
 
-
-    route = '/batlabrun'
-
-    def response(self, rc):
-        print("I am batlab!")
-        return "No you are batlab!\n", None
-
-    @runfor('batlab')
+    @runfor('github-pr-new', 'github-pr-sync')
     def execute(self, rc):
         fetch = fetch_template.format(repo="git://github.com/cyclus/cyclus", 
                                       branch="staging")

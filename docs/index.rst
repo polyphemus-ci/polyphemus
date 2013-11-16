@@ -64,7 +64,6 @@ Polyphemus currently has the following external dependencies,
 
     #. `flask <http://flask.pocoo.org/>`_
     #. `paramiko <http://www.lag.net/paramiko/>`_
-    #. `python's scp <https://pypi.python.org/pypi/scp>`_
     #. `github3.py <http://github3py.readthedocs.org/en/latest/>`_
     #. `apache 2 <http://httpd.apache.org/>`_, optional for real depolyment
     #. `argcomplete <https://argcomplete.readthedocs.org/en/latest/>`_, optional for BASH completion

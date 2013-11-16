@@ -81,7 +81,7 @@ def setup():
         "description": 'polyphemus',
         "author": 'Anthony Scopatz',
         "author_email": 'scopatz@gmail.com',
-        #"url": '',
+        "url": 'http://polyphemus.org/',
         "packages": packages,
         "package_dir": pack_dir,
         "package_data": pack_data,
@@ -89,7 +89,7 @@ def setup():
         "description": "A BaTLaB itegration service for repo hosting sites "
                        "like GitHub.",
         "long_description": long_desc,
-        "download_url": ("https://github.com/cyclus/polyphemus/"
+        "download_url": ("https://github.com/polyphemus-ci/polyphemus/"
             "zipball/{0}.{1}").format(*polyphemus.version.polyphemus_version_info[:2]),
         "classifiers": [
             "License :: OSI Approved :: BSD License",
@@ -107,7 +107,6 @@ def setup():
         setup_kwargs['install_requires'] = [
             'Flask >= 0.10.1',
             'paramiko >= 1.10.0',
-            'scp >= 0.6.0',
             'github3.py >= 0.7.1',
             ]
     # changing dirs for virtualenv
