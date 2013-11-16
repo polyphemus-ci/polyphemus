@@ -48,7 +48,11 @@ class PolyphemusPlugin(Plugin):
         keys.  It optionally may also include 'target_url' and 'description' keys.
         """
         data = rc.event.data
+        jobs = PersistentCache(cachefile=rc.batlab_jobs_cache)
         pr = (rc.github_owner, rc.github_repo, data['number'])
+        if pr in jobs:
+            if 'target_url' not in data or not data['target_url'].startswith('http'):
+                data['target_url'] = jobs[pr]['report_url']
         set_pull_request_status(pr, data['status'], 
             target_url=data.get('target_url', ""), 
             description=data.get('description', self._status_descs[data['status']]), 

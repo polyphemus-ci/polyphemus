@@ -35,9 +35,18 @@ class PolyphemusPlugin(Plugin):
 
     request_methods = ['GET', 'POST']
 
+    _rm_job_stats = frozenset(['success', 'failure', 'error'])
+
     def response(self, rc):
         data = json.loads(request.data)
         if 'status' not in rawdata:
             return "\n", None
+        jobs = PersistentCache(cachefile=rc.batlab_jobs_cache)
+        job = (rc.github_owner, rc.github_repo, data['number'])
+        if job in jobs:
+            if 'target_url' not in data or not data['target_url'].startswith('http'):
+                data['target_url'] = jobs[job]['report_url']
+        if data['status'] in self._rm_job_stats:
+            del jobs[job]
         event = Event(name='batlab-status', data=data)
         return request.method + ": batlab\n", event
