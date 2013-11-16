@@ -196,7 +196,7 @@ class PolyphemusPlugin(Plugin):
         # submit the job
         client.exec_command('cd ' + jobdir)
         _, submitout, _ = client.exec_command('{0} {1}'.format(rc.batlab_submit_cmd,
-                                                               rc.batlab_run_spec)
+                                                               rc.batlab_run_spec))
         client.exec_command('cd ${HOME}')
 
         # clean up
