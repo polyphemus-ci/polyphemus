@@ -59,7 +59,7 @@ class PolyphemusPlugin(Plugin):
                            key_filename=rc.ssh_key_file)
             client.close()
             can_connect = True
-        except paramiko.AuthenticationException:
+        except (paramiko.AuthenticationException, paramiko.BadHostKeyException):
             can_connect = False
         if not can_connect:
             password = False

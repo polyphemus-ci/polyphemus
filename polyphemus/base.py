@@ -26,8 +26,8 @@ try:
 except ImportError:
     import json
 
-from .utils import RunControl, NotSpecified, writenewonly, \
-    DEFAULT_RC_FILE, DEFAULT_PLUGINS, nyansep, indent
+from .utils import RunControl, NotSpecified, writenewonly, DEFAULT_RC_FILE, \
+    DEFAULT_PLUGINS, nyansep
 from .plugins import Plugin
 from .version import report_versions
 
@@ -139,8 +139,7 @@ class PolyphemusPlugin(Plugin):
             key = paramiko.RSAKey.generate(bits=2048)
             key.write_private_key_file(key_file)
             pub = ssh_pub_key(key_file)
-            with io.open("{0}.pub".format(key_file), 'w') as f:
-                f.write(pub)
+            writenewonly(pub, "{0}.pub".format(key_file))
         rc.ssh_key_file = key_file
 
     def report_debug(self, rc):
