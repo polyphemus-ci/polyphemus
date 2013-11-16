@@ -46,7 +46,7 @@ class PolyphemusPlugin(Plugin):
         if job in jobs:
             if 'target_url' not in data or not data['target_url'].startswith('http'):
                 data['target_url'] = jobs[job]['report_url']
-        if data['status'] in self._rm_job_stats:
-            del jobs[job]
+            if data['status'] in self._rm_job_stats:
+                del jobs[job]
         event = Event(name='batlab-status', data=data)
         return request.method + ": batlab\n", event
