@@ -1,9 +1,9 @@
-.. _polyphemus_base:
+.. _polyphemus_apache2:
 
 *******************************************************
-Base Plugin
+Apache 2 Plugin
 *******************************************************
 
-.. automodule:: polyphemus.base 
+.. automodule:: polyphemus.apache2
     :members:
 

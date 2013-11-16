@@ -1,9 +1,9 @@
-.. _polyphemus_base:
+.. _polyphemus_event:
 
 *******************************************************
-Base Plugin
+Event
 *******************************************************
 
-.. automodule:: polyphemus.base 
+.. automodule:: polyphemus.event
     :members:
 

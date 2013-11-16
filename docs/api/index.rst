@@ -10,20 +10,20 @@ Polyphemus impelements the following modules and sub-packages,
 .. toctree::
     :maxdepth: 1
 
+    github
     githubbase
     githubhook
     githubstat
-    github
 
 **BaTLab Plugins:**
 
 .. toctree::
     :maxdepth: 1
 
+    batlab
     batlabbase
     batlabrun
     batlabstat
-    batlab
 
 **Helpers:**
 
