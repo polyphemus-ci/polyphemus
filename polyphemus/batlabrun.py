@@ -37,23 +37,25 @@ else
 fi
 """
 
-BATLAB_SUBMIT_HOSTNAME = 'submit-1.batlab.org'
+jobs = {}
 
 class PolyphemusPlugin(Plugin):
     """This class provides functionality for running batlab."""
 
+
+
     requires = ('polyphemus.batlabbase',)
 
     defaultrc = RunControl(
-	batlab_user='cyclusci',
-	test_dir= 'polyphemus;',
-	test_subdir='cyclus_runs',
-	test_deps='CYCLUS fetch CYCAMORE cycamore.polyphemus.run-spec submit.sh',
-	replace_file = 'fetch/cyclus.git',
-	run_spec='cycamore.polyphemus.run-spec',
-	sub_cmd='./submit.sh',      
-	 ssh_key_file='~/.ssh/id_rsa'
-        )
+        batlab_user='cyclusci',
+        test_dir= 'polyphemus;',
+        test_subdir='cyclus_runs',
+        test_deps='CYCLUS fetch CYCAMORE cycamore.polyphemus.run-spec submit.sh',
+        replace_file = 'fetch/cyclus.git',
+        run_spec='cycamore.polyphemus.run-spec',
+        sub_cmd='./submit.sh',      
+        ssh_key_file='~/.ssh/id_rsa')
+
 
     route = '/batlabrun'
 
@@ -66,41 +68,45 @@ class PolyphemusPlugin(Plugin):
         fetch = fetch_template.format(repo="git://github.com/cyclus/cyclus", 
                                       branch="staging")
 
-	curl = curl_template.format(ip=rc.server_url,port=rc.port)
+        curl = curl_template.format(ip=rc.server_url,port=rc.port)
 
         fetchfile = NamedTemporaryFile()
         fetchfile.write(fetch)
         fetchfile.flush()
 
 
-	#assumes polyphemus on batlab is altered version of main ci dir
+        #assumes polyphemus on batlab is altered version of main ci dir
 
 
-	client = paramiko.SSHClient()
-	try:
-		client.connect(BATLAB_SUBMIT_HOSTNAME, username=rc.batlab_user,key_filename=rc.ssh_key_file)
+        client = paramiko.SSHClient()
+        try:
+            client.connect(BATLAB_SUBMIT_HOSTNAME, username=rc.batlab_user,key_filename=rc.ssh_key_file)
 
-		client.put(fetchfile.name,rc.test_dir)
-		
- 		client.exec_command('cd '+rc.test_dir)
- 		client.exec_command('git pull')
- 		client.exec_command('mkdir '+rc.test_subdir+'/'+fetchfile.name)
-		client.exec_command('cp -R '+rc.test_deps+' '+rc.test_subdir+'/'+fetchfile.name)
-		client.exec_command('mv '+fetchfile.name+' 'rc.test_subdir+'/'+fetchfile.name+'/'+rc.replace_file)
-		client.exec_command('rm -f '+fetchfile.name)
-		client.exec_command('cd '+rc.test_subdir+'/'+fetchfile.name)
-		client.exec_command( 'echo "'+curl+'"'+" >>`cat "+rc.run_spec+" | grep post_all |sed -e 's/ //g' | sed -e 's/post_all=//g'`")
-		stdin, stdout, stderr = client.exec_command(rc.sub_cmd+' '+rc.run_spec)
+            if (rc.batlab_user,rc.repo,rc.branch) in jobs:
+                client.exec_command('nmi_rm '+ jobs((rc.batlab_user,rc.repo,rc.branch))
+                del jobs((rc.batlab_user,rc.repo,rc.branch))
 
-		lines = stdout.out.splitlines()
-        	report_url = lines[-1].strip()
+            client.put(fetchfile.name,rc.test_dir)
 
-		client.close()
+            client.exec_command('cd '+rc.test_dir)
+            client.exec_command('git pull')
+            client.exec_command('mkdir '+rc.test_subdir+'/'+fetchfile.name)
+            client.exec_command('cp -R '+rc.test_deps+' '+rc.test_subdir+'/'+fetchfile.name)
+            client.exec_command('mv '+fetchfile.name+' 'rc.test_subdir+'/'+fetchfile.name+'/'+rc.replace_file)
+            client.exec_command('rm -f '+fetchfile.name)
+            client.exec_command('cd '+rc.test_subdir+'/'+fetchfile.name)
+            client.exec_command( 'echo "'+curl+'"'+" >>`cat "+rc.run_spec+" | grep post_all |sed -e 's/ //g' | sed -e 's/post_all=//g'`")
+            stdin, stdout, stderr = client.exec_command(rc.sub_cmd+' '+rc.run_spec)
 
-        	print(report_url)
+            lines = stdout.out.splitlines()
+            report_url = lines[-1].strip()
+            gid = lines[0].split()[-1]
+            jobs[(rc.batlab_user,rc.repo,rc.branch)]=gid
+            client.close()
+            print(report_url)
 
-	except:
-		print('Error talking to BATLAB')
-	
+        except:
+            print('Error talking to BATLAB')
 
-	fetchfile.close()
+
+        fetchfile.close()
