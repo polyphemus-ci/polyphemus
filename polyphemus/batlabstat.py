@@ -38,7 +38,7 @@ class PolyphemusPlugin(Plugin):
     _rm_job_stats = frozenset(['success', 'failure', 'error'])
 
     def response(self, rc):
-        if 'status' not in form:
+        if 'status' not in request.form:
             return "\n", None
         data = json.loads(request.form['status'])
         if 'status' not in rawdata:
