@@ -22,7 +22,7 @@ except ImportError:
 
 from flask import request
 
-from .utils import RunControl, NotSpecified
+from .utils import RunControl, NotSpecified, PersistentCache
 from .plugins import Plugin
 from .event import Event, runfor
 
