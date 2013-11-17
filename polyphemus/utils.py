@@ -442,7 +442,7 @@ class PersistentCache(MutableMapping):
     def dump(self):
         """Writes the cache out to the filesystem."""
         if not os.path.exists(self.cachefile):
-            pardir = os.path.split(self.cachefile)[0]
+            pardir = os.path.split(os.path.abspath(self.cachefile))[0]
             if not os.path.exists(pardir):
                 os.makedirs(pardir)
         with io.open(self.cachefile, 'wb') as f:

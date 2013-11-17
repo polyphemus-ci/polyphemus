@@ -30,15 +30,15 @@ git_path = {repo_dir};cd {repo_dir};git checkout {branch}
 """
 
 pre_curl_template = r"""# polyphemus pre_all callback
-curl --data '{{"status": "pending", "number": {number}, "description": "build and test initialized"}}' {server_url}:{port}/batlabstatus
+curl --data '{{\"status\":\"pending\",\"number\":{number},\"description\":\"build and test initialized\"}}' {server_url}:{port}/batlabstatus
 """
 
-post_curl_template = """# polyphemus post_all callbacks
+post_curl_template = r"""# polyphemus post_all callbacks
 if [ -z $_NMI_STEP_FAILED ]
 then
-    curl --data '{{"status": "success", "number": {number}, "description": "build and test completed successfully"}}' {server_url}:{port}/batlabstatus
+    curl --data '{{\"status\":\"success\",\"number\":{number},\"description\":\"build and test completed successfully\"}}' {server_url}:{port}/batlabstatus
 else
-    curl --data '{{"status": "failure", "number": {number}, "description": "build and test failed"}}' {server_url}:{port}/batlabstatus
+    curl --data '{{\"status\":\"failure\",\"number\":{number},\"description\":\"build and test failed\"}}' {server_url}:{port}/batlabstatus
 fi
 """
 
@@ -184,7 +184,7 @@ class PolyphemusPlugin(Plugin):
 
         # append callbacks to run spec
         _, x, _ = client.exec_command('cat {0}/{1}'.format(jobdir, rc.batlab_run_spec))
-        run_spec_lines = [l.strip() for l in x.read().splitlines()]
+        run_spec_lines = [l.strip() for l in x.readlines()]
         pre_file = _ensure_task_script('pre_all', run_spec_lines, rc.batlab_run_spec, 
                                        jobdir, client)
         pre_curl = pre_curl_template.format(number=pr.number, port=rc.port, 
@@ -198,12 +198,12 @@ class PolyphemusPlugin(Plugin):
 
         # submit the job
         client.exec_command('cd ' + jobdir)
-        _, submitout, _ = client.exec_command('{0} {1}'.format(rc.batlab_submit_cmd,
-                                                               rc.batlab_run_spec))
-        client.exec_command('cd ${HOME}')
+        cmd = 'cd {0}; {1} {2}'
+        cmd = cmd.format(jobdir, rc.batlab_submit_cmd, rc.batlab_run_spec)
+        _, submitout, _ = client.exec_command(cmd)
 
         # clean up
-        lines = submitout.read().splitlines()
+        lines = submitout.readlines()
         report_url = lines[-1].strip()
         gid = lines[0].split()[-1]
         client.close()
