@@ -41,7 +41,7 @@ class PolyphemusPlugin(Plugin):
         if 'status' not in request.form:
             return "\n", None
         data = json.loads(request.form['status'])
-        if 'status' not in rawdata:
+        if 'status' not in data:
             return "\n", None
         jobs = PersistentCache(cachefile=rc.batlab_jobs_cache)
         job = (rc.github_owner, rc.github_repo, data['number'])
