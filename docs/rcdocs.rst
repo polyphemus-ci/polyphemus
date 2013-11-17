@@ -13,7 +13,8 @@ polyphemus.base
 :host: Which urls to host to, ie '0.0.0.0' for everyone or 'localhost' for
     yourself, *default:* '0.0.0.0'.
 :plugins: Plugins to include, *default:* ('polyphemus.base',
-    'polyphemus.github', 'polyphemus.batlab').
+    'polyphemus.githubhook', 'polyphemus.batlabrun', 'polyphemus.batlabstat',
+    'polyphemus.githubstat').
 :port: The port to run the application on., *default:* 80.
 :rc: Path to run control file, *default:* 'polyphemusrc.py'.
 :server_url: The URL of the server without a trailing slash or port number, eg
@@ -36,6 +37,23 @@ polyphemus.batlabbase
 
 polyphemus.batlabrun
 ====================
+:batlab_fetch_file: The fetch file that is used by BaTLab to grab the project
+    source code.  This file will be overwritten by polyphemus. This should be a
+    relative path from the base of the batlab_scripts_url dir., *default:*
+    NotSpecified.
+:batlab_jobs_cache: The cache file for currently running BaTLab jobs.,
+    *default:* 'jobs.cache'.
+:batlab_kill_cmd: The command that is used to kill existing jobs on BaTLab.,
+    *default:* 'nmi_rm'.
+:batlab_run_spec: The top level *.run-spec file that is submitted to BaTLab.
+    This should be a relative path from the base of the batlab_scripts_url dir.,
+    *default:* NotSpecified.
+:batlab_scripts_url: This is the URL where the BaTLab files may be found. If
+    this ends in '.git' then it is interperted as a git repository and the whole
+    repo is cloned.  If this ends in '.zip' then the URL is downloaded and
+    unpacked., *default:* NotSpecified.
+:batlab_submit_cmd: The command that is used to submit jobs to BaTLab.,
+    *default:* 'nmi_submit'.
 
 
 
