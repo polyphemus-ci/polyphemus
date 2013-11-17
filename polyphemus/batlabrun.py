@@ -156,8 +156,10 @@ class PolyphemusPlugin(Plugin):
         # if sync event, kill an existing job.
         if rc.event.name == 'github-pr-sync' and job in jobs:
             client.exec_command(rc.batlab_kill_cmd + ' ' + jobs[job]['gid'])
-            client.exec_command('rm -r ' + jobdir)
             del jobs[job]
+
+        # make sure we have a clean jobdir
+        client.exec_command('rm -rf ' + jobdir)
 
         # put the scripts on batlab in a '~/owner--reposiotry--number' dir
         if rc.batlab_scripts_url.endswith('.git'):
