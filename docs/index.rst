@@ -26,6 +26,7 @@ Contents
     :maxdepth: 1
 
     tutorial
+    batlab
     api/index
     rcdocs
     previous/index
