@@ -12,7 +12,7 @@ from warnings import warn
 
 from event import runfor
 
-from .utils import RunControl, NotSpecified, writenewonly, \
+from .utils import RunControl, NotSpecified, writenewonly, newoverwrite, \
     DEFAULT_RC_FILE, DEFAULT_PLUGINS, nyansep, indent, check_cmd
 from .plugins import Plugin
 
@@ -20,7 +20,7 @@ if sys.version_info[0] >= 3:
     basestring = str
 
 conf_template = """<VirtualHost *:{port}>
-    ServerName {sever_name}
+    ServerName {server_name}
     ServerAlias www.{server_name}
     WSGIScriptAlias / {wsgi_file}
 </VirtualHost>
@@ -78,7 +78,8 @@ class PolyphemusPlugin(Plugin):
         rc.wsgi_file = os.path.abspath(rc.wsgi_file)
         if not rc.apache2_setup:
             return
-        conf = conf_template.format(**rc)
-        wsgi = wsgi_template.format(**rc)
+        conf = conf_template.format(port=rc.port, server_name=rc.server_name, 
+                                    wsgi_file=rc.wsgi_file)
+        wsgi = wsgi_template.format(rc=rc.rc)
         newoverwrite(conf, rc.site_conf_file, verbose=rc.verbose)
         newoverwrite(wsgi, rc.wsgi_file, verbose=rc.verbose)
