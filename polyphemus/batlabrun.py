@@ -135,10 +135,13 @@ class PolyphemusPlugin(Plugin):
     
     @runfor('github-pr-new', 'github-pr-sync')
     def execute(self, rc):
+        event_name = rc.event.name
         pr = rc.event.data  # pull request object
         job = pr.repository + (pr.number,)  # job key (owner, repo, number) 
         jobdir = "${HOME}/" + "--".join(pr.repository + (str(pr.number),))
         jobs = PersistentCache(cachefile=rc.batlab_jobs_cache)
+        event = rc.event = Event(name='batlab-status', data={'status': 'error', 
+                                 'number': pr.number, 'description': ''})
 
         # connect to batlab
         key = paramiko.RSAKey(filename=rc.ssh_key_file)
@@ -151,15 +154,18 @@ class PolyphemusPlugin(Plugin):
                            key_filename=rc.ssh_key_file)
         except (paramiko.BadHostKeyException, paramiko.AuthenticationException, 
                 paramiko.SSHException, socket.error):
-            msg = 'Error connecting to BaTLab'
+            msg = 'Error connecting to BaTLab.'
             warn(msg, RuntimeWarning)
-            rc.event = Event(name='batlab-status', data={'status': 'error', 
-                             'number': pr.number, 'description': msg})
+            event.data['description'] = msg
             return
 
         # if sync event, kill an existing job.
-        if rc.event.name == 'github-pr-sync' and job in jobs:
-            client.exec_command(rc.batlab_kill_cmd + ' ' + jobs[job]['gid'])
+        if event_name == 'github-pr-sync' and job in jobs:
+            try:
+                client.exec_command(rc.batlab_kill_cmd + ' ' + jobs[job]['gid'])
+            except paramiko.SSHException:
+                event.data['description'] = "Error killing existing BaTLab job."
+                return
             del jobs[job]
 
         # make sure we have a clean jobdir
@@ -168,14 +174,26 @@ class PolyphemusPlugin(Plugin):
         # put the scripts on batlab in a '~/owner--reposiotry--number' dir
         if rc.batlab_scripts_url.endswith('.git'):
             cmd = 'git clone {0} {1}'.format(rc.batlab_scripts_url, jobdir)
-            client.exec_command(cmd)
+            try:
+                client.exec_command(cmd)
+            except paramiko.SSHException:
+                event.data['description'] = "Error cloning BaTLab scripts."
+                return            
         elif rc.batlab_scripts_url.endswith('.zip'):
             cmds = unzip_cmds_template.format(jobdir=jobdir, 
                     batlab_scripts_url=rc.batlab_scripts_url).splitlines()
-            rtns = list(map(client.exec_command, cmds))
+            try:
+                rtns = list(map(client.exec_command, cmds))
+            except paramiko.SSHException:
+                event.data['description'] = "Error unzipping BaTLab scripts."
+                return            
             ls = rtns[-1][1].read().split()
             if len(ls) == 1:
-                client.exec_command('mv {0}/{1}/* {0}'.format(jobdir, ls[0]))
+                try:
+                    client.exec_command('mv {0}/{1}/* {0}'.format(jobdir, ls[0]))
+                except paramiko.SSHException:
+                    event.data['description'] = "Error moving BaTLab scripts."
+                    return            
         else:
             raise ValueError("rc.batlab_scripts_url not understood.")
 
@@ -184,37 +202,60 @@ class PolyphemusPlugin(Plugin):
         fetch = git_fetch_template.format(repo_url=head_repo.clone_url,
                                           repo_dir=job[1], branch=pr.head.ref)
         cmd = 'echo "{0}" > {1}/{2}'.format(fetch, jobdir, rc.batlab_fetch_file)
-        client.exec_command(cmd)
-
+        try:
+            client.exec_command(cmd)
+        except paramiko.SSHException:
+            event.data['description'] = "Error overwritting fetch file."
+            return
+        
         # append callbacks to run spec
-        _, x, _ = client.exec_command('cat {0}/{1}'.format(jobdir, rc.batlab_run_spec))
-        run_spec_lines = [l.strip() for l in x.readlines()]
-        pre_file = _ensure_task_script('pre_all', run_spec_lines, rc.batlab_run_spec, 
-                                       jobdir, client)
-        pre_curl = pre_curl_template.format(number=pr.number, port=rc.port, 
-                                            server_url=rc.server_url)
-        client.exec_command('echo "{0}" >> {1}/{2}'.format(pre_curl, jobdir, pre_file))
-        post_file = _ensure_task_script('post_all', run_spec_lines, rc.batlab_run_spec,
-                                        jobdir, client)
-        post_curl = post_curl_template.format(number=pr.number, port=rc.port, 
-                                              server_url=rc.server_url)
-        client.exec_command('echo "{0}" >> {1}/{2}'.format(post_curl, jobdir, 
-                                                           post_file))
+        try:
+            _, x, _ = client.exec_command('cat {0}/{1}'.format(jobdir, 
+                                                               rc.batlab_run_spec))
+            run_spec_lines = [l.strip() for l in x.readlines()]
+            pre_file = _ensure_task_script('pre_all', run_spec_lines, 
+                                           rc.batlab_run_spec, jobdir, client)
+            pre_curl = pre_curl_template.format(number=pr.number, port=rc.port, 
+                                                server_url=rc.server_url)
+            client.exec_command('echo "{0}" >> {1}/{2}'.format(pre_curl, 
+                                                               jobdir, pre_file))
+            post_file = _ensure_task_script('post_all', run_spec_lines, 
+                                            rc.batlab_run_spec, jobdir, client)
+            post_curl = post_curl_template.format(number=pr.number, port=rc.port, 
+                                                  server_url=rc.server_url)
+            client.exec_command('echo "{0}" >> {1}/{2}'.format(post_curl, jobdir, 
+                                                               post_file))
+        except paramiko.SSHException:
+            event.data['description'] = "Error appending BaTLab callbacks."
+            return            
 
         # create scp for jobdir
         jobdir_scp = jobdir_scp_template.format(jobdir=jobdir)
-        client.exec_command('echo "{0}" >> {1}/jobdir.scp'.format(jobdir_scp, jobdir))
+        cmd = 'echo "{0}" >> {1}/jobdir.scp'.format(jobdir_scp, jobdir)
+        try:
+            client.exec_command(cmd)
+        except paramiko.SSHException:
+            event.data['description'] = "Error creating jobdir.scp file."
+            return            
         inputs = run_spec_lines[_find_startswith(run_spec_lines, 'inputs')].strip()
         if len(inputs.split('=', 1)[-1].strip()) > 0:
             cmd = "sed -i 's:{0}:{0},jobdir.scp:' {1}/{2}"
         else:
             cmd = "sed -i 's:{0}:jobdir.scp:' {1}/{2}"
-        client.exec_command(cmd.format(inputs, jobdir, rc.batlab_run_spec))
+        try:
+            client.exec_command(cmd.format(inputs, jobdir, rc.batlab_run_spec))
+        except paramiko.SSHException:
+            event.data['description'] = "Error adding jobdir.scp to inputs."
+            return            
 
         # submit the job
         client.exec_command('cd ' + jobdir)
         cmd = 'cd {0}; {1} {2}'
-        cmd = cmd.format(jobdir, rc.batlab_submit_cmd, rc.batlab_run_spec)
+        try:
+            cmd = cmd.format(jobdir, rc.batlab_submit_cmd, rc.batlab_run_spec)
+        except paramiko.SSHException:
+            event.data['description'] = "Error submitting BaTLab job."
+            return            
         _, submitout, _ = client.exec_command(cmd)
 
         # clean up
@@ -225,4 +266,6 @@ class PolyphemusPlugin(Plugin):
         jobs[job] = {'gid': gid, 'report_url': report_url, 'dir': jobdir}
         if rc.verbose:
             print("BaTLab reporting link: " + report_url)
+        event.data.update(status='pending', description="BaTLab job submitted.",
+                          target_url=report_url)
 
