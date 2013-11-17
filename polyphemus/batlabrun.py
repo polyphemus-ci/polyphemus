@@ -30,15 +30,15 @@ git_path = {repo_dir};cd {repo_dir};git checkout {branch}
 """
 
 pre_curl_template = r"""# polyphemus pre_all callback
-curl --data '{{\"status\":\"pending\",\"number\":{number},\"description\":\"build and test initialized\"}}' {server_url}:{port}/batlabstatus
+curl --form status='{{\"status\":\"pending\",\"number\":{number},\"description\":\"build and test initialized\"}}' {server_url}:{port}/batlabstatus
 """
 
 post_curl_template = r"""# polyphemus post_all callbacks
 if [ -z $_NMI_STEP_FAILED ]
 then
-    curl --data '{{\"status\":\"success\",\"number\":{number},\"description\":\"build and test completed successfully\"}}' {server_url}:{port}/batlabstatus
+    curl --form status='{{\"status\":\"success\",\"number\":{number},\"description\":\"build and test completed successfully\"}}' {server_url}:{port}/batlabstatus
 else
-    curl --data '{{\"status\":\"failure\",\"number\":{number},\"description\":\"build and test failed\"}}' {server_url}:{port}/batlabstatus
+    curl --form status='{{\"status\":\"failure\",\"number\":{number},\"description\":\"build and test failed\"}}' {server_url}:{port}/batlabstatus
 fi
 """
 
@@ -47,6 +47,12 @@ unzip_cmds_template = \
 unzip -d {jobdir} batlab_scripts.zip
 rm batlab_scripts.zip
 ls {jobdir}"""
+
+jobdir_scp_template = \
+"""method = scp
+scp_file = {jobdir}/*
+recursive = true
+"""
 
 def _find_startswith(x, s):
     """Finds the index of a sequence that starts with s or returns -1.
@@ -61,13 +67,11 @@ def _ensure_task_script(task, run_spec_lines, run_spec_path, jobdir, client):
     if i >= 0:
         task_file = run_spec_lines[i].split('=', 1)[1].strip()
     else:
-        task_file = '{0}/{1}.sh'.format(jobdir, task)
-        client.exec_command('touch ' + task_file)
-        client.exec_command('chmod 755 ' + task_file)
+        task_file = '{0}.sh'.format(task)
+        client.exec_command("echo '#!/bin/bash' > {0}/{1}".format(jobdir, task_file))
+        client.exec_command('chmod 755 {0}/{1}'.format(jobdir, task_file))
         client.exec_command('echo "{0} = {1}" >> {2}/{3}'.format(task, task_file, 
                                                           jobdir, run_spec_path))
-    if not os.path.isabs(task_file) and not task_file.startswith('$'):
-        task_file = jobdir + '/' + task_file
     return task_file
 
 
@@ -178,7 +182,7 @@ class PolyphemusPlugin(Plugin):
         # Overwrite fetch file
         head_repo = github3.repository(*pr.head.repo)
         fetch = git_fetch_template.format(repo_url=head_repo.clone_url,
-                                          repo_dir=job[1], branch=pr.head.label)
+                                          repo_dir=job[1], branch=pr.head.ref)
         cmd = 'echo "{0}" > {1}/{2}'.format(fetch, jobdir, rc.batlab_fetch_file)
         client.exec_command(cmd)
 
@@ -189,12 +193,23 @@ class PolyphemusPlugin(Plugin):
                                        jobdir, client)
         pre_curl = pre_curl_template.format(number=pr.number, port=rc.port, 
                                             server_url=rc.server_url)
-        client.exec_command('echo "{0}" >> {1}'.format(pre_curl, pre_file))
+        client.exec_command('echo "{0}" >> {1}/{2}'.format(pre_curl, jobdir, pre_file))
         post_file = _ensure_task_script('post_all', run_spec_lines, rc.batlab_run_spec,
                                         jobdir, client)
         post_curl = post_curl_template.format(number=pr.number, port=rc.port, 
                                               server_url=rc.server_url)
-        client.exec_command('echo "{0}" >> {1}'.format(post_curl, post_file))
+        client.exec_command('echo "{0}" >> {1}/{2}'.format(post_curl, jobdir, 
+                                                           post_file))
+
+        # create scp for jobdir
+        jobdir_scp = jobdir_scp_template.format(jobdir=jobdir)
+        client.exec_command('echo "{0}" >> {1}/jobdir.scp'.format(jobdir_scp, jobdir))
+        inputs = run_spec_lines[_find_startswith(run_spec_lines, 'inputs')].strip()
+        if len(inputs.split('=', 1)[-1].strip()) > 0:
+            cmd = "sed -i 's:{0}:{0},jobdir.scp:' {1}/{2}"
+        else:
+            cmd = "sed -i 's:{0}:jobdir.scp:' {1}/{2}"
+        client.exec_command(cmd.format(inputs, jobdir, rc.batlab_run_spec))
 
         # submit the job
         client.exec_command('cd ' + jobdir)

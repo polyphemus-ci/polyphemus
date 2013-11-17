@@ -38,7 +38,9 @@ class PolyphemusPlugin(Plugin):
     _rm_job_stats = frozenset(['success', 'failure', 'error'])
 
     def response(self, rc):
-        data = json.loads(request.data)
+        if 'status' not in form:
+            return "\n", None
+        data = json.loads(request.form['status'])
         if 'status' not in rawdata:
             return "\n", None
         jobs = PersistentCache(cachefile=rc.batlab_jobs_cache)
