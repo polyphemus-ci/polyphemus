@@ -82,11 +82,8 @@ def _ensure_runspec_option(option, run_spec_lines, run_spec_path, jobdir, client
             client.exec_command("sed -i -e 's/{0}/{1}={2}/g' {3}/{4}".format(run_spec_lines[i], 
                                                           option, value, jobdir, run_spec_path))
     else:
-        old_val = None
         client.exec_command('echo "{0} = {1}" >> {2}/{3}'.format(option, value, 
                                                           jobdir, run_spec_path))
-    #might be a terrible idea
-    return old_val     
 
 
 class PolyphemusPlugin(Plugin):
@@ -235,8 +232,8 @@ class PolyphemusPlugin(Plugin):
                                                                jobdir, pre_file))
             post_file = _ensure_task_script('post_all', run_spec_lines, 
                                             rc.batlab_run_spec, jobdir, client)
-            old_value = _ensure_runspec_option('always_run_post_all', run_spec_lines, 
-                                               rc.batlab.run_spec, jobdir, client, 'true')
+            _ensure_runspec_option('always_run_post_all', run_spec_lines, 
+                                   rc.batlab.run_spec, jobdir, client, 'true')
             post_curl = post_curl_template.format(number=pr.number, port=rc.port, 
                                                   server_url=rc.server_url)
             client.exec_command('echo "{0}" >> {1}/{2}'.format(post_curl, jobdir, 
