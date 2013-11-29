@@ -233,7 +233,7 @@ class PolyphemusPlugin(Plugin):
             post_file = _ensure_task_script('post_all', run_spec_lines, 
                                             rc.batlab_run_spec, jobdir, client)
             _ensure_runspec_option('always_run_post_all', run_spec_lines, 
-                                   rc.batlab.run_spec, jobdir, client, 'true')
+                                   rc.batlab_run_spec, jobdir, client, 'true')
             post_curl = post_curl_template.format(number=pr.number, port=rc.port, 
                                                   server_url=rc.server_url)
             client.exec_command('echo "{0}" >> {1}/{2}'.format(post_curl, jobdir, 
