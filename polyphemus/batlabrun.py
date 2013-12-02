@@ -262,21 +262,24 @@ class PolyphemusPlugin(Plugin):
             return            
 
         # submit the job
-        #client.exec_command('cd ' + jobdir)
         cmd = 'cd {0}; {1} {2}'
         cmd = cmd.format(jobdir, rc.batlab_submit_cmd, rc.batlab_run_spec)
         try:
             _, submitout, submiterr = client.exec_command(cmd)
         except paramiko.SSHException:
             event.data['description'] = "Error submitting BaTLab job."
-            print(submiterr.read())
+            return
+        err = submiterr.read().strip()
+        if 0 < len(err):
+            event.data['description'] = err
+            warn("BaTLab job unsuccessfully submitted:\n" + err, RuntimeWarning)
             return
 
         # clean up
         lines = submitout.readlines()
-        import pprint
-        pprint.pprint(lines)
-        pprint.pprint(submiterr.read())
+        #import pprint
+        #pprint.pprint(lines)
+        #pprint.pprint(submiterr.read())
         report_url = lines[-1].strip()
         gid = lines[0].split()[-1]
         client.close()
