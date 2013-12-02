@@ -49,6 +49,7 @@ class PolyphemusPlugin(Plugin):
         """
         data = rc.event.data
         pr = (rc.github_owner, rc.github_repo, data['number'])
+	#import pdb; pdb.set_trace()
         set_pull_request_status(pr, data['status'], 
             target_url=data.get('target_url', ""), 
             description=data.get('description', self._status_descs[data['status']]), 
