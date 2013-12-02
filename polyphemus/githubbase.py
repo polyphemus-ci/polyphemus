@@ -28,7 +28,7 @@ from github3 import GitHub
 import github3.events
 from flask import request
 
-from .utils import RunControl, NotSpecified, writenewonly, \
+from .utils import RunControl, NotSpecified, writenewonly, newoverwrite, \
     DEFAULT_RC_FILE, DEFAULT_PLUGINS, nyansep, indent, check_cmd
 from .plugins import Plugin
 from .event import Event, runfor
@@ -48,12 +48,12 @@ def gh_make_token(gh, user, credfile='gh.cred'):
     """
     password = False
     while not password:
-        password = getpass("{0}'s password: ".format(user))
+        password = getpass("{0}'s github password: ".format(user))
     note = 'polyphemus application'
     note_url = 'polyphemus.org'
     scopes = ['user', 'repo']
     auth = gh.authorize(user, password, scopes, note, note_url)
-    writenewonly(str(auth.token) + '\n' + str(auth.id) + '\n', credfile)
+    newoverwrite(str(auth.token) + '\n' + str(auth.id) + '\n', credfile)
 
 def ensure_logged_in(gh, user=None, credfile='gh.cred'):
     """Ensures that the user is logged in, either through a token or by 
