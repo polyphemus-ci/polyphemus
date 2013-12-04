@@ -31,8 +31,8 @@
   <div style="text-align:center;"><h2>Open Pull Requests</h2></div>
   <table id="openpr" class="openprclass" border="1">
     <tr><th>Issue Number</th><th>Status</th><th>Message</th></tr>
-    {% for pr, status in open_prs %}
-    <tr style="background-color:#888888;">
+    {% for pr, status, bgcolor in open_prs %}
+    <tr style="background-color:{{ bgcolor }};">
       <td><a href="{{ pr.html_url }}">#{{ pr.number }}</a></td>
 
       {% if status %}

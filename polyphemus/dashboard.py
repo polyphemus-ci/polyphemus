@@ -47,17 +47,25 @@ class PolyphemusPlugin(Plugin):
             resp = "No polyphemus dashboard found."
         return resp, event
 
+    _bgcolors = {
+        'success': 'rgba(149, 201, 126, 0.6)', 
+        'pending': 'rgba(255, 153, 51, 0.6)', 
+        'failed': 'rgba(189, 44, 0, 0.6)', 
+        'error': 'rgba(51, 51, 51, 0.6)',
+        }
+
     def _ghrepsonse(self, rc):
         r = github3.repository(rc.github_owner, rc.github_repo)
         open_prs = []
         closed_prs = []
         for pr in r.iter_pulls():
             status = get_pull_request_status(r, pr)
-            if status.description is None:
+            if status is not None and status.description is None:
                 status.description = "unhelpful message"
+            bgcolor = "#ffffff" if status is None else self._bgcolors[status.state]
             if pr.state == 'open':
-                open_prs.append((pr, status))
+                open_prs.append((pr, status, bgcolor))
             else:
-                closed_prs.append((pr, status))
+                closed_prs.append((pr, status, bgcolor))
         return render_template("github_dashboard.html", rc=rc, open_prs=open_prs, 
                                closed_prs=closed_prs)
