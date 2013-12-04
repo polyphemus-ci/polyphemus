@@ -65,6 +65,7 @@ def setup():
         have_setuptools = False
 
     scripts_dir = os.path.join(dir_name, 'scripts')
+    scripts_dir = 'scripts'
     if os.name == 'nt':
         scripts = [os.path.join(scripts_dir, f)
                    for f in os.listdir(scripts_dir)]
@@ -72,9 +73,9 @@ def setup():
         scripts = [os.path.join(scripts_dir, f)
                    for f in os.listdir(scripts_dir)
                    if not f.endswith('.bat')]
-    packages = ['polyphemus',]
-    pack_dir = {'polyphemus': 'polyphemus', }
-    pack_data = {'polyphemus': []}
+    packages = ['polyphemus']
+    pack_dir = {'polyphemus': 'polyphemus',}
+    pack_data = {'polyphemus': ['templates/*.html'],}
     setup_kwargs = {
         "name": "polyphemus",
         "version": INFO['version'],
@@ -102,6 +103,8 @@ def setup():
             "Topic :: Software Development :: Testing", 
             ],
         "data_files": [("", ['license']),],
+        "zip_safe": False,
+        #"include_package_data": True,
         }
     if have_setuptools:
         setup_kwargs['install_requires'] = [
