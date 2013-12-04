@@ -24,7 +24,7 @@ try:
 except ImportError:
     import json
 
-from github3 import GitHub
+from github3 import GitHub, pull_request, repository
 import github3.events
 from flask import request
 
@@ -77,6 +77,31 @@ def ensure_logged_in(gh, user=None, credfile='gh.cred'):
         token = f.readline().strip()  
         id = f.readline().strip()
     gh.login(username=user, token=token)
+
+_stat_key = lambda s: s.created_at
+
+def get_pull_request_status(r, pr):
+    """Sets a state for every commit associated ith a pull request.
+
+    Parameters
+    ----------
+    r : Repository
+        A github3 repository objects
+    pr : PullRequest or len-3 sequence
+        A github3 pull request object or a tuple of (owner, repository, number).
+
+    Returns
+    -------
+    status : Status or None
+        The latest pull request status or None
+
+    """
+    if isinstance(pr, Sequence):
+        pr = pull_request(*pr)
+    statuses = sorted(r.iter_statuses(pr.head.sha), key=_stat_key)
+    if len(statuses) == 0:
+        return None
+    return statuses[-1]
 
 def set_pull_request_status(pr, state, target_url="", description='', user=None, 
                             credfile='gh.cred'):

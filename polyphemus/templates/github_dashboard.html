@@ -5,5 +5,50 @@
 </head>
 <body>
   <h1>Polyphemus Dashboard for {{ rc.github_owner }}/{{ rc.github_repo }}</h1>
+  {% if open_prs %}
+  <script type="text/javascript">
+    window.onload=function(){
+    var tfrow = document.getElementById('openpr').rows.length;
+    var tbRow=[];
+    var tbRowColor=[];
+    for (var i=1;i<tfrow;i++) {
+      tbRow[i]=document.getElementById('openpr').rows[i];
+      tbRow[i]._originalBackgroundColor = tbRow[i].style.backgroundColor;
+      tbRow[i].onmouseover = function(){this.style.backgroundColor = '#f3f8aa';};
+      tbRow[i].onmouseout = function() {
+        this.style.backgroundColor = this._originalBackgroundColor;
+        };
+      }
+    };
+  </script>
+  <style type="text/css">
+    table.openprclass {width:80%;border-color:#a9a9a9;color:#333333;border-collapse:collapse;margin:auto;border-width:1px;text-align:center;}
+    table.openprclass th {padding:4px;border-style:solid;border-color:#a9a9a9;border-width:1px;background-color:#b8b8b8;text-align:left;}
+    table.openprclass tr {background-color:#ffffff;text-align:center;}
+    table.openprclass td {padding:4px;border-color:#a9a9a9;border-style:solid;border-width:1px;text-align:center;}
+  </style>
+
+  <div style="text-align:center;"><h2>Open Pull Requests</h2></div>
+  <table id="openpr" class="openprclass" border="1">
+    <tr><th>Issue Number</th><th>Status</th><th>Message</th></tr>
+    {% for pr, status in open_prs %}
+    <tr style="background-color:#888888;">
+      <td><a href="{{ pr.html_url }}">#{{ pr.number }}</a></td>
+
+      {% if status %}
+        <td>{{ status.state }}</td>
+        {% if status.target_url %}
+          <td><a href="{{ status.target_url }}">{{ status.description }}</a></td>
+        {% else %}
+          <td>{{ status.description }}</td>
+        {% endif %}
+      {% else %}
+        <td><i>unknown</i></td>
+        <td></td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
 </body>
 </html>
