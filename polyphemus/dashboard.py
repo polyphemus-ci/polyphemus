@@ -50,7 +50,8 @@ class PolyphemusPlugin(Plugin):
                 if rc.verbose:
                     print("Launching pull request", pr)
                 event = Event(name='batlab-run', data=pr)
-                banner_message = 'Launched Pull Request <a href="{0}">#{1}</a>'
+                banner_message = ('Launched BaTLab Job for Pull Request '
+                                  '<a href="{0}">#{1}</a>')
                 banner_message = banner_message.format(pr.html_url, number)
             resp = self._ghrepsonse(rc, gh, banner_message)
         else:
