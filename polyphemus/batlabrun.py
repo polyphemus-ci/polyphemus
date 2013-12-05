@@ -144,7 +144,7 @@ class PolyphemusPlugin(Plugin):
         if rc.batlab_run_spec is NotSpecified:
             raise ValueError('batlab_run_spec must be provided!')
     
-    @runfor('github-pr-new', 'github-pr-sync')
+    @runfor('batlab-run', 'github-pr-new', 'github-pr-sync')
     def execute(self, rc):
         event_name = rc.event.name
         pr = rc.event.data  # pull request object

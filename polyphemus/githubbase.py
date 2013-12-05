@@ -80,11 +80,13 @@ def ensure_logged_in(gh, user=None, credfile='gh.cred'):
 
 _stat_key = lambda s: s.created_at
 
-def get_pull_request_status(r, pr):
+def get_pull_request_status(gh, r, pr):
     """Sets a state for every commit associated ith a pull request.
 
     Parameters
     ----------
+    gh : GitHub
+        A logged in GitHub instance
     r : Repository
         A github3 repository objects
     pr : PullRequest or len-3 sequence
@@ -97,7 +99,7 @@ def get_pull_request_status(r, pr):
 
     """
     if isinstance(pr, Sequence):
-        pr = pull_request(*pr)
+        pr = gh.pull_request(*pr)
     statuses = sorted(r.iter_statuses(pr.head.sha), key=_stat_key)
     if len(statuses) == 0:
         return None

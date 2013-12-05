@@ -27,7 +27,7 @@ from flask import request, render_template
 from .utils import RunControl, NotSpecified, PersistentCache
 from .plugins import Plugin
 from .event import Event, runfor
-from .githubbase import get_pull_request_status
+from .githubbase import get_pull_request_status, ensure_logged_in
 
 class PolyphemusPlugin(Plugin):
     """This class routes the dashboard."""
@@ -39,10 +39,20 @@ class PolyphemusPlugin(Plugin):
     request_methods = ['GET', 'POST']
 
     def response(self, rc):
-        event = None
-        #if request.method == 'POST':
+        resp = ""
+        event = banner_message = None
         if any([p.startswith('polyphemus.github') for p in rc.plugins]):
-            resp = self._ghrepsonse(rc)
+            gh = github3.GitHub()
+            ensure_logged_in(gh, user=rc.github_user, credfile=rc.github_credentials)
+            if request.method == 'POST':
+                number = int(request.form['number'])
+                pr = gh.pull_request(rc.github_owner, rc.github_repo, number)
+                if rc.verbose:
+                    print("Launching pull request", pr)
+                event = Event(name='batlab-run', data=pr)
+                banner_message = 'Launched Pull Request <a href="{0}">#{1}</a>'
+                banner_message = banner_message.format(pr.html_url, number)
+            resp = self._ghrepsonse(rc, gh, banner_message)
         else:
             resp = "No polyphemus dashboard found."
         return resp, event
@@ -54,18 +64,16 @@ class PolyphemusPlugin(Plugin):
         'error': 'rgba(51, 51, 51, 0.6)',
         }
 
-    def _ghrepsonse(self, rc):
-        r = github3.repository(rc.github_owner, rc.github_repo)
-        open_prs = []
-        closed_prs = []
-        for pr in r.iter_pulls():
-            status = get_pull_request_status(r, pr)
-            if status is not None and status.description is None:
-                status.description = "unhelpful message"
-            bgcolor = "#ffffff" if status is None else self._bgcolors[status.state]
-            if pr.state == 'open':
-                open_prs.append((pr, status, bgcolor))
-            else:
-                closed_prs.append((pr, status, bgcolor))
+    def _ghpr(self, rc, gh, r, pr):
+        status = get_pull_request_status(gh, r, pr)
+        if status is not None and status.description is None:
+            status.description = "unhelpful message"
+        bgcolor = "#ffffff" if status is None else self._bgcolors[status.state]
+        return pr, status, bgcolor
+
+    def _ghrepsonse(self, rc, gh, banner_message=None):
+        r = gh.repository(rc.github_owner, rc.github_repo)
+        open_prs = [self._ghpr(rc, gh, r, pr) for pr in r.iter_pulls(state='open')]
+        closed_prs = [self._ghpr(rc, gh, r, pr) for pr in r.iter_pulls(state='closed')]
         return render_template("github_dashboard.html", rc=rc, open_prs=open_prs, 
-                               closed_prs=closed_prs)
+                               closed_prs=closed_prs, banner_message=banner_message)
