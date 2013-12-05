@@ -64,7 +64,7 @@ class PolyphemusPlugin(Plugin):
         'error': 'rgba(51, 51, 51, 0.6)',
         }
 
-    def _ghpr(self, rc, gh, r, pr):
+    def _ghprinfo(self, rc, gh, r, pr):
         status = get_pull_request_status(gh, r, pr)
         if status is not None and status.description is None:
             status.description = "unhelpful message"
@@ -73,7 +73,8 @@ class PolyphemusPlugin(Plugin):
 
     def _ghrepsonse(self, rc, gh, banner_message=None):
         r = gh.repository(rc.github_owner, rc.github_repo)
-        open_prs = [self._ghpr(rc, gh, r, pr) for pr in r.iter_pulls(state='open')]
-        closed_prs = [self._ghpr(rc, gh, r, pr) for pr in r.iter_pulls(state='closed')]
+        open_prs = [self._ghprinfo(rc, gh, r, pr) for pr in r.iter_pulls(state='open')]
+        closed_prs = [self._ghprinfo(rc, gh, r, pr) for pr in 
+                      r.iter_pulls(state='closed', number=10)]
         return render_template("github_dashboard.html", rc=rc, open_prs=open_prs, 
                                closed_prs=closed_prs, banner_message=banner_message)
