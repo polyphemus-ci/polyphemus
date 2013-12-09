@@ -81,7 +81,7 @@ def ensure_logged_in(gh, user=None, credfile='gh.cred'):
 _stat_key = lambda s: s.created_at
 
 def get_pull_request_status(gh, r, pr):
-    """Sets a state for every commit associated ith a pull request.
+    """Sets a state for every commit associated with a pull request.
 
     Parameters
     ----------
