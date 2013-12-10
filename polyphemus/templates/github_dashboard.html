@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<head>
+  <title>Polyphemus Dashboard for {{ rc.github_owner }}/{{ rc.github_repo }}</title>
+
+  <script type="text/javascript">
+    function setupPrTable(tableId){
+    var tfrow = document.getElementById(tableId).rows.length;
+    var tbRow=[];
+    var tbRowColor=[];
+    for (var i=1;i<tfrow;i++) {
+      tbRow[i]=document.getElementById(tableId).rows[i];
+      tbRow[i]._originalBackgroundColor = tbRow[i].style.backgroundColor;
+      tbRow[i].onmouseover = function(){this.style.backgroundColor = '#f3f8aa';};
+      tbRow[i].onmouseout = function() {
+        this.style.backgroundColor = this._originalBackgroundColor;
+        };
+      }
+    };
+    window.onload=function(){
+      setupPrTable('openprtable');
+      setupPrTable('closedprtable');
+    };
+  </script>
+
+  <style type="text/css">
+    table.prtableclass {width:80%;border-color:#a9a9a9;color:#333333;border-collapse:collapse;margin:auto;border-width:1px;text-align:center;}
+    table.prtableclass th {padding:4px;border-style:solid;border-color:#a9a9a9;border-width:1px;background-color:#b8b8b8;text-align:left;}
+    table.prtableclass tr {background-color:#ffffff;text-align:center;}
+    table.prtableclass td {padding:4px;border-color:#a9a9a9;border-style:solid;border-width:1px;text-align:center;}
+  </style>
+
+</head>
+<body>
+  <h1>Polyphemus Dashboard for {{ rc.github_owner }}/{{ rc.github_repo }}</h1>
+
+  {% if banner_message %}
+  <div style="text-align:center;"><h2>{{ banner_message|safe }}</h2></div>  
+  {% endif %}
+
+  {% if open_prs %}
+  <div style="text-align:center;"><h2>Open Pull Requests</h2></div>
+  <table id="openprtable" class="prtableclass" border="1">
+    <tr><th>Issue Number</th><th>Status</th><th>Message</th><th>BaTLab Job</th></tr>
+    {% for pr, status, bgcolor in open_prs %}
+    <tr style="background-color:{{ bgcolor }};">
+      <td><a href="{{ pr.html_url }}">#{{ pr.number }}</a></td>
+
+      {% if status %}
+        <td>{{ status.state }}</td>
+        {% if status.target_url %}
+          <td><a href="{{ status.target_url }}">{{ status.description }}</a></td>
+        {% else %}
+          <td>{{ status.description }}</td>
+        {% endif %}
+      {% else %}
+        <td><i>unknown</i></td>
+        <td></td>
+      {% endif %}
+
+      <td><form method="post"><input type="hidden" name="number" value="{{ pr.number }}" /><input type="submit" value="launch!" /></form></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  {% if closed_prs %}
+  <div style="text-align:center;"><h2>Closed Pull Requests</h2></div>
+  <table id="closedprtable" class="prtableclass" border="1">
+    <tr><th>Issue Number</th><th>Status</th><th>Message</th><th>BaTLab Job</th></tr>
+    {% for pr, status, bgcolor in closed_prs %}
+    <tr style="background-color:{{ bgcolor }};">
+      <td><a href="{{ pr.html_url }}">#{{ pr.number }}</a></td>
+
+      {% if status %}
+        <td>{{ status.state }}</td>
+        {% if status.target_url %}
+          <td><a href="{{ status.target_url }}">{{ status.description }}</a></td>
+        {% else %}
+          <td>{{ status.description }}</td>
+        {% endif %}
+      {% else %}
+        <td><i>unknown</i></td>
+        <td></td>
+      {% endif %}
+
+      <td><form method="post"><input type="hidden" name="number" value="{{ pr.number }}" /><input type="submit" value="launch!" /></form></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</body>
+</html>

@@ -30,7 +30,8 @@ DEFAULT_RC_FILE = "polyphemusrc.py"
 """Default run control file name."""
 
 DEFAULT_PLUGINS = ('polyphemus.base', 'polyphemus.githubhook', 'polyphemus.batlabrun', 
-                   'polyphemus.batlabstat', 'polyphemus.githubstat')
+                   'polyphemus.batlabstat', 'polyphemus.githubstat', 
+                   'polyphemus.dashboard')
 """Default list of plugin module names."""
 
 FORBIDDEN_NAMES = frozenset(['del', 'global'])
