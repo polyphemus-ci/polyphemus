@@ -19,14 +19,51 @@ from .plugins import Plugin
 if sys.version_info[0] >= 3:
     basestring = str
 
-conf_template = """<VirtualHost *:{port}>
-    ServerName {server_name}
+conf_template = """
+ServerName {server_name}
+
+<VirtualHost *:{port}>
     ServerAlias www.{server_name}
     WSGIScriptAlias / {wsgi_file}
+    DocumentRoot {rc_dir}
+
+<Directory {wsgi_dir}>
+        Order allow,deny
+        Allow from all
+    </Directory>
+
+
+     # ---- Configure Logging ----
+
+    ErrorLog /root/apache-logs/error.log
+    LogLevel info
+    CustomLog /root/apache-logs/access.log combined
+
+
 </VirtualHost>
+"""
+port_template="""
+# If you just change the port or add more ports here, you will likely also
+# have to change the VirtualHost statement in
+# /etc/apache2/sites-enabled/000-default
+
+Listen 80
+
+Listen {port}
+
+<IfModule ssl_module>
+	Listen 443
+</IfModule>
+
+<IfModule mod_gnutls.c>
+	Listen 443
+</IfModule>
+
 """
 
 wsgi_template = """import polyphemus.main
+import sys
+sys.stdout = sys.stderr
 application = polyphemus.main.setup(rc={rc!r}).rc.app
 """
 
@@ -51,6 +88,7 @@ class PolyphemusPlugin(Plugin):
                            "'/etc/apache2/sites-available/{server_name}.conf'"),
         'wsgi_file': ("The WSGI script file name, defaults to "
                       "'/var/www/{appname}/{appname}.wsgi'"),
+        'port_file': ("The Apache 2 ports.conf file, defaults to /etc/apache2/ports.conf"),
         }
 
     def update_argparser(self, parser):
@@ -65,7 +103,8 @@ class PolyphemusPlugin(Plugin):
                             help=self.rcdocs['site_conf_file'])
         parser.add_argument('--wsgi-file', dest='wsgi_file', 
                             help=self.rcdocs['wsgi_file'])
-
+        parser.add_argument('--port-file',dest='port_file',
+                            help=self.rdocs['port_file'])
     def setup(self, rc):
         if rc.server_name is NotSpecified:
             rc.server_name = rc.appname + '.com'
@@ -76,10 +115,16 @@ class PolyphemusPlugin(Plugin):
         if rc.wsgi_file is NotSpecified:
             rc.wsgi_file = '/var/www/{0}/{0}.wsgi'.format(rc.appname)
         rc.wsgi_file = os.path.abspath(rc.wsgi_file)
+
+        if rc.port_file is NotSpecified:
+            rc.port_file = 'etc/apache2/ports.conf'
         if not rc.apache2_setup:
             return
         conf = conf_template.format(port=rc.port, server_name=rc.server_name, 
-                                    wsgi_file=rc.wsgi_file)
+                                    wsgi_file=rc.wsgi_file,rc_dir=rc.rc.rsplit('/',1)[0],
+                                    wsgi_dir=wsgi_file.rsplit('/',1)[0])
         wsgi = wsgi_template.format(rc=rc.rc)
+        ports = port_template.format(port=rc.port)
         newoverwrite(conf, rc.site_conf_file, verbose=rc.verbose)
         newoverwrite(wsgi, rc.wsgi_file, verbose=rc.verbose)
+        newoverwrite(ports,rc.port_file,verbose=rc.verbose)
