@@ -104,7 +104,7 @@ class PolyphemusPlugin(Plugin):
         parser.add_argument('--wsgi-file', dest='wsgi_file', 
                             help=self.rcdocs['wsgi_file'])
         parser.add_argument('--port-file',dest='port_file',
-                            help=self.rdocs['port_file'])
+                            help=self.rcdocs['port_file'])
     def setup(self, rc):
         if rc.server_name is NotSpecified:
             rc.server_name = rc.appname + '.com'
