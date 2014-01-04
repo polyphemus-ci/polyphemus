@@ -35,14 +35,15 @@ ServerName {server_name}
 
      # ---- Configure Logging ----
 
-    ErrorLog /root/apache-logs/error.log
+    ErrorLog {log_dir}/error.log
     LogLevel info
-    CustomLog /root/apache-logs/access.log combined
+    CustomLog {log_dir}/access.log combined
 
 
 </VirtualHost>
 """
-port_template="""
+
+port_template = """
 # If you just change the port or add more ports here, you will likely also
 # have to change the VirtualHost statement in
 # /etc/apache2/sites-enabled/000-default
@@ -89,6 +90,7 @@ class PolyphemusPlugin(Plugin):
         'wsgi_file': ("The WSGI script file name, defaults to "
                       "'/var/www/{appname}/{appname}.wsgi'"),
         'port_file': ("The Apache 2 ports.conf file, defaults to /etc/apache2/ports.conf"),
+        'log_dir': ("The directory for apache logging, defaults to /apache-logs")
         }
 
     def update_argparser(self, parser):
@@ -105,6 +107,9 @@ class PolyphemusPlugin(Plugin):
                             help=self.rcdocs['wsgi_file'])
         parser.add_argument('--port-file',dest='port_file',
                             help=self.rcdocs['port_file'])
+        parser.add_argument('--log-dir',dest='log_dir',
+                            help=self.rcdocs['log_dir'])
+
     def setup(self, rc):
         if rc.server_name is NotSpecified:
             rc.server_name = rc.appname + '.com'
@@ -115,16 +120,33 @@ class PolyphemusPlugin(Plugin):
         if rc.wsgi_file is NotSpecified:
             rc.wsgi_file = '/var/www/{0}/{0}.wsgi'.format(rc.appname)
         rc.wsgi_file = os.path.abspath(rc.wsgi_file)
-
+        if rc.log_dir is NotSpecified:
+            rc.log_dir = '/apache-logs'
         if rc.port_file is NotSpecified:
-            rc.port_file = 'etc/apache2/ports.conf'
+            rc.port_file = '/etc/apache2/ports.conf'
         if not rc.apache2_setup:
             return
         conf = conf_template.format(port=rc.port, server_name=rc.server_name, 
-                                    wsgi_file=rc.wsgi_file,rc_dir=rc.rc.rsplit('/',1)[0],
-                                    wsgi_dir=wsgi_file.rsplit('/',1)[0])
+                                    wsgi_file=rc.wsgi_file, rc_dir=rc.rc.rsplit('/',1)[0],
+                                    wsgi_dir=wsgi_file.rsplit('/',1)[0], log_dir=rc.log_dir )
         wsgi = wsgi_template.format(rc=rc.rc)
         ports = port_template.format(port=rc.port)
         newoverwrite(conf, rc.site_conf_file, verbose=rc.verbose)
         newoverwrite(wsgi, rc.wsgi_file, verbose=rc.verbose)
-        newoverwrite(ports,rc.port_file,verbose=rc.verbose)
+        try:
+            port_file = open(rc.port_file,'r')
+            port_lines = port_file.readlines()
+            port_file.close()
+            found = False
+            for line in port_lines:
+                tokens = line.split()
+                if len(tokens) == 2:
+                    if tokens[0] == 'Listen' and tokens[1] == str(rc.port):
+                        found = True
+            if not found:
+                port_file = open(rc.port_file,'a')
+                port_file.write('\nListen '+str(rc.port)+'\n')
+                port_file.close()
+              
+        except IOError as e:
+            newoverwrite(ports, rc.port_file, verbose=rc.verbose)
