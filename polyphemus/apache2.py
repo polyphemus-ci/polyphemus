@@ -133,7 +133,7 @@ class PolyphemusPlugin(Plugin):
         ports = port_template.format(port=rc.port)
         newoverwrite(conf, rc.site_conf_file, verbose=rc.verbose)
         newoverwrite(wsgi, rc.wsgi_file, verbose=rc.verbose)
-        try:
+        if os.path.isfile(rc.port_file):
             port_file = open(rc.port_file,'r')
             port_lines = port_file.readlines()
             port_file.close()
@@ -148,5 +148,5 @@ class PolyphemusPlugin(Plugin):
                 port_file.write('\nListen '+str(rc.port)+'\n')
                 port_file.close()
               
-        except IOError as e:
+        else:
             newoverwrite(ports, rc.port_file, verbose=rc.verbose)
