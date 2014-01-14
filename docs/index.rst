@@ -68,6 +68,7 @@ Polyphemus currently has the following external dependencies,
     #. `github3.py <http://github3py.readthedocs.org/en/latest/>`_
     #. `apache 2 <http://httpd.apache.org/>`_, optional for real depolyment
     #. `argcomplete <https://argcomplete.readthedocs.org/en/latest/>`_, optional for BASH completion
+    #. `modwsgi <https://code.google.com/p/modwsgi/>`_
 
 ==========
 Contact Us
