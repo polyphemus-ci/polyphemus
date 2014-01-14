@@ -33,6 +33,6 @@ def report_versions():
 # Polyphemus
 #
 
-polyphemus_version = '0.1-dev'
-polyphemus_version_info = version_info(0, 1, 0, 'dev')
+polyphemus_version = '0.1'
+polyphemus_version_info = version_info(0, 1, 0, '')
 
