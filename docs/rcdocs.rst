@@ -14,7 +14,7 @@ polyphemus.base
     yourself, *default:* '0.0.0.0'.
 :plugins: Plugins to include, *default:* ('polyphemus.base',
     'polyphemus.githubhook', 'polyphemus.batlabrun', 'polyphemus.batlabstat',
-    'polyphemus.githubstat').
+    'polyphemus.githubstat', 'polyphemus.dashboard').
 :port: The port to run the application on., *default:* 80.
 :rc: Path to run control file, *default:* 'polyphemusrc.py'.
 :server_url: The URL of the server without a trailing slash or port number, eg
