@@ -22,7 +22,7 @@ if sys.version_info[0] >= 3:
 conf_template = """
 ServerName {server_name}
 
-<VirtualHost *:{port}>
+<VirtualHost {server_name}:{port}>
     ServerAlias www.{server_name}
     WSGIScriptAlias / {wsgi_file}
     DocumentRoot {rc_dir}
@@ -118,7 +118,7 @@ class PolyphemusPlugin(Plugin):
             rc.site_conf_file = scf.format(rc.server_name)
         rc.site_conf_file = os.path.abspath(rc.site_conf_file)
         if rc.wsgi_file is NotSpecified:
-            rc.wsgi_file = '/var/www/{0}/{0}.wsgi'.format(rc.appname)
+            rc.wsgi_file = '/var/www/{0}/{0}.wsgi'.format(rc.server_name)
         rc.wsgi_file = os.path.abspath(rc.wsgi_file)
         if rc.log_dir is NotSpecified:
             rc.log_dir = '/apache-logs'
@@ -128,7 +128,7 @@ class PolyphemusPlugin(Plugin):
             return
         conf = conf_template.format(port=rc.port, server_name=rc.server_name, 
                                     wsgi_file=rc.wsgi_file, rc_dir=rc.rc.rsplit('/',1)[0],
-                                    wsgi_dir=wsgi_file.rsplit('/',1)[0], log_dir=rc.log_dir )
+                                    wsgi_dir=rc.wsgi_file.rsplit('/',1)[0], log_dir=rc.log_dir )
         wsgi = wsgi_template.format(rc=rc.rc)
         ports = port_template.format(port=rc.port)
         newoverwrite(conf, rc.site_conf_file, verbose=rc.verbose)

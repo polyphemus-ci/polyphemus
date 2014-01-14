@@ -106,6 +106,10 @@ def newoverwrite(s, filename, verbose=False):
             old = f.read()
         if s == old:
             return
+    else:
+        dirname = os.path.dirname(filename)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
     with io.open(filename, 'wb') as f:
         f.write(s.encode())
     if verbose:
