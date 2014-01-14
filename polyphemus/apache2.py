@@ -22,7 +22,7 @@ if sys.version_info[0] >= 3:
 conf_template = """
 ServerName {server_name}
 
-<VirtualHost *:{port}>
+<VirtualHost {server_name}:{port}>
     ServerAlias www.{server_name}
     WSGIScriptAlias / {wsgi_file}
     DocumentRoot {rc_dir}
