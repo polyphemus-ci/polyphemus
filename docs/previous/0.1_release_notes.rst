@@ -1,0 +1,25 @@
+=============================
+Polyphemus 0.1 Release Notes
+=============================
+
+~ One eye makes for shallow bugs ~ 
+
+Polyphemus is a continuous integration tool that front-ends to GitHub et al. and 
+backends to BaTLaB. This fills a similar role to that of Travis-CI or the GitHub 
+plugin for Jenkins. However, BaTLab has a wider vareity of machines than Travis-CI 
+and is cheaper (free) than running your own machines with Jenkins.
+
+Polyphemus supports Apache 2.
+
+Examples of a running polyphemus may be seen for the Cylus project at 
+`the project dashboard <http://cyclus-ci.fuelcycle.org/dashboard>`_ and 
+`github <https://github.com/cyclus/cyclus/pulls>`_.
+
+Authors
+=======
+This release contains code written by the following people (in alphabetical 
+order):
+
+* Matt Gidden
+* Anthony Scopatz
+* Zach Welch
