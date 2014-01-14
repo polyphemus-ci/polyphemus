@@ -128,7 +128,7 @@ class PolyphemusPlugin(Plugin):
             return
         conf = conf_template.format(port=rc.port, server_name=rc.server_name, 
                                     wsgi_file=rc.wsgi_file, rc_dir=rc.rc.rsplit('/',1)[0],
-                                    wsgi_dir=wsgi_file.rsplit('/',1)[0], log_dir=rc.log_dir )
+                                    wsgi_dir=rc.wsgi_file.rsplit('/',1)[0], log_dir=rc.log_dir )
         wsgi = wsgi_template.format(rc=rc.rc)
         ports = port_template.format(port=rc.port)
         newoverwrite(conf, rc.site_conf_file, verbose=rc.verbose)
