@@ -153,7 +153,6 @@ class PolyphemusPlugin(Plugin):
         jobs = PersistentCache(cachefile=rc.batlab_jobs_cache)
         event = rc.event = Event(name='batlab-status', data={'status': 'error', 
                                  'number': pr.number, 'description': ''})
-
         # connect to batlab
         key = paramiko.RSAKey(filename=rc.ssh_key_file)
         client = paramiko.SSHClient()
@@ -169,7 +168,6 @@ class PolyphemusPlugin(Plugin):
             warn(msg, RuntimeWarning)
             event.data['description'] = msg
             return
-
         # if sync event, kill an existing job.
         if event_name == 'github-pr-sync' and job in jobs:
             try:
@@ -181,7 +179,6 @@ class PolyphemusPlugin(Plugin):
 
         # make sure we have a clean jobdir
         client.exec_command('rm -rf ' + jobdir)
-
         # put the scripts on batlab in a '~/owner--reposiotry--number' dir
         if rc.batlab_scripts_url.endswith('.git'):
             cmd = 'git clone {0} {1}'.format(rc.batlab_scripts_url, jobdir)
@@ -232,10 +229,6 @@ class PolyphemusPlugin(Plugin):
                 for l in run_spec_lines
                 ]
             
-            run_spec_lines = [
-                l + append for l in run_spec_lines 
-                if l.split()[0] == "description"
-                ]
             pre_file = _ensure_task_script('pre_all', run_spec_lines, 
                                            rc.batlab_run_spec, jobdir, client)
             pre_curl = pre_curl_template.format(number=pr.number, port=rc.port, 
