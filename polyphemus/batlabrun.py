@@ -223,7 +223,19 @@ class PolyphemusPlugin(Plugin):
         try:
             _, x, _ = client.exec_command('cat {0}/{1}'.format(jobdir, 
                                                                rc.batlab_run_spec))
+            append = ', <a href="{0}/dashboard">{1}</a>'.format(
+                rc.server_url, 
+                "Polyphemus Dashboard")
             run_spec_lines = [l.strip() for l in x.readlines()]
+            run_spec_lines = [
+                (l + append if l.split('=')[0].strip() == "description" else l) 
+                for l in run_spec_lines
+                ]
+            
+            run_spec_lines = [
+                l + append for l in run_spec_lines 
+                if l.split()[0] == "description"
+                ]
             pre_file = _ensure_task_script('pre_all', run_spec_lines, 
                                            rc.batlab_run_spec, jobdir, client)
             pre_curl = pre_curl_template.format(number=pr.number, port=rc.port, 
