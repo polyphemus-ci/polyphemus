@@ -15,7 +15,7 @@ Polyphemus-CI
 Polyphemus is a continuous integration tool that front-ends to 
 `GitHub <https://github.com/>`_ et al. and backends to 
 `BaTLaB <https://www.batlab.org/>`_.  This fills a similar role to that of Travis-CI
-or the GitHub plugin for Jenkins.  However, BaTLab has a wider vareity of machines
+or the GitHub plugin for Jenkins.  However, BaTLab has a wider variety of machines
 than Travis-CI and is cheaper (free) than running your own machines with Jenkins.
 
 =========
@@ -66,9 +66,9 @@ Polyphemus currently has the following external dependencies,
     #. `flask <http://flask.pocoo.org/>`_
     #. `paramiko <http://www.lag.net/paramiko/>`_
     #. `github3.py <http://github3py.readthedocs.org/en/latest/>`_
-    #. `apache 2 <http://httpd.apache.org/>`_, optional for real depolyment
     #. `argcomplete <https://argcomplete.readthedocs.org/en/latest/>`_, optional for BASH completion
-    #. `modwsgi <https://code.google.com/p/modwsgi/>`_
+    #. `apache 2 <http://httpd.apache.org/>`_, optional for real deployment
+    #. `modwsgi <https://code.google.com/p/modwsgi/>`_, optional for apache
 
 ==========
 Contact Us

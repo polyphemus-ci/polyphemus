@@ -98,7 +98,7 @@ def setup():
             "Programming Language :: Python :: 2",
             "Programming Language :: Python :: 3",
             "Topic :: Utilities",
-            "Topic :: Software Development :: Build Tools"
+            "Topic :: Software Development :: Build Tools",
             "Topic :: Software Development :: Quality Assurance",
             "Topic :: Software Development :: Testing", 
             ],
