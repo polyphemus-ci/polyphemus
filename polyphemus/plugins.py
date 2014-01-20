@@ -400,6 +400,8 @@ class Plugins(object):
                 plugin.setup(rc)
         except Exception as e:
             self.exit(e)
+        if rc.only_setup:
+            self.exit(0)
 
     def execute(self):
         """Preforms all plugin executions."""
@@ -458,9 +460,12 @@ class Plugins(object):
                     msg += plugin_msg
             with io.open(os.path.join(rc.debug_filename), 'a+') as f:
                 f.write(msg)
-            raise
+            if err == 0:
+                sys.exit(err)
+            else:
+                raise
         else:
-            sys.exit(str(err))
+            sys.exit(err)
 
 def summarize_rcdocs(modnames, headersep="=", maxdflt=2000):
     """For a list of plugin module names, return a rST string that 
