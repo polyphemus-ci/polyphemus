@@ -41,7 +41,7 @@ class PolyphemusPlugin(Plugin):
         'error': 'Error: does not compute.',
         }
 
-    @runfor('batlab-status')
+    @runfor('batlab-status', 'swc-status')
     def execute(self, rc):
         """The githubstat plugin is only executed for 'batlab-status' events and 
         requires that the event data be a dictionary with 'status' and 'number' as
