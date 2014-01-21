@@ -34,7 +34,7 @@ rem_add_template = """git remote add {branch} {url}"""
 
 fetch_template = """git fetch {branch}"""
 
-merge_template = """git merge {commit}"""
+merge_template = """git merge {branch}/{commit}"""
 
 html_diff_template = """htmldiff {file1} {file2}"""
 
@@ -59,8 +59,9 @@ def add_fetch_remote(rem_branch, rem_url, cwd=None):
     subprocess.check_call(fetch_template.format(branch=rem_branch).split(), 
                           cwd=cwd, shell=(os.name == 'nt'))
 
-def merge_commit(merge_ref, cwd=None):    
-    subprocess.check_call(merge_template.format(commit=merge_ref).split(), 
+def merge_commit(merge_branch, merge_ref, cwd=None):    
+    subprocess.check_call(merge_template.format(branch=merge_branch, 
+                                                commit=merge_ref).split(), 
                           cwd=cwd, shell=(os.name == 'nt'))
         
 class PolyphemusPlugin(Plugin):
@@ -93,7 +94,7 @@ class PolyphemusPlugin(Plugin):
         add_fetch_remote("upstream", base_repo.clone_url, 
                          cwd=self._head_dir)
         checkout_commit(base.ref, cwd=self._head_dir)
-        merge_commit(head.ref, cwd=self._head_dir)
+        merge_commit("origin", head.ref, cwd=self._head_dir)
         subprocess.check_call(build_html, shell=True, 
                               cwd=self._head_dir)
 
