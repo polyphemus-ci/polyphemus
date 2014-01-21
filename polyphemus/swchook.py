@@ -10,6 +10,11 @@ import os
 import sys
 import subprocess
 
+try:
+    import simplejson as json
+except ImportError:
+    import json
+
 import github3
 
 from .utils import RunControl, NotSpecified, PersistentCache
@@ -79,6 +84,14 @@ class PolyphemusPlugin(Plugin):
                                                             file2=head, 
                                                             diff=diff).split(), 
                                   shell=(os.name == 'nt'))
+
+    def _dump_state(self):
+        with open('swc_state.json', 'w') as outfile:
+            json.dumps({'base': self._base_dir, 
+                        'head': self._head_dir, 
+                        'diff': self._diff_dir,
+                        'files': self._files}
+                       outfile, indent=4, separators=(',', ': '))
                     
     def execute(self, rc):
         event_name = rc.event.name
@@ -96,3 +109,4 @@ class PolyphemusPlugin(Plugin):
         self._build_head_html(pr.base, pr.head)
         self._build_base_html(pr.base)
         self._generate_diffs()
+        self._dump_state()
