@@ -78,7 +78,7 @@ class PolyphemusPlugin(Plugin):
         
         clone_repo(base_repo.clone_url, self._base_dir)
         checkout_commit(base.ref, cwd=self._base_dir)
-        subprocess.check_call(build_html.split(), cwd=self._base_dir, shell=True)
+        subprocess.check_call(build_html, cwd=self._base_dir, shell=True)
 
     def _build_head_html(self, base, head):        
         head_repo = github3.repository(*head.repo)
@@ -91,7 +91,7 @@ class PolyphemusPlugin(Plugin):
         checkout_commit(head.ref, cwd=self._head_dir)
         merge_commit(base.ref, "upstream", base_repo.clone_url, 
                      cwd=self._head_dir)
-        subprocess.check_call(build_html.split(), shell=True, 
+        subprocess.check_call(build_html, shell=True, 
                               cwd=self._head_dir)
 
     def _generate_diffs(self):
