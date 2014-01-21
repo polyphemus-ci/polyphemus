@@ -90,7 +90,7 @@ class PolyphemusPlugin(Plugin):
             json.dumps({'base': self._base_dir, 
                         'head': self._head_dir, 
                         'diff': self._diff_dir,
-                        'files': self._files}
+                        'files': self._files},
                        outfile, indent=4, separators=(',', ': '))
                     
     def execute(self, rc):
