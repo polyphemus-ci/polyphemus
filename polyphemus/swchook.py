@@ -104,7 +104,7 @@ class PolyphemusPlugin(Plugin):
             event.data['description'] = "Error, PR is not mergeable."
             return 
         
-        self._files = [os.path.join(f.split("/")) for f in pr.iter_files()]
+        self._files = [os.path.join(f.filename.split("/")) for f in pr.iter_files()]
                   
         self._build_head_html(pr.base, pr.head)
         self._build_base_html(pr.base)
