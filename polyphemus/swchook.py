@@ -122,7 +122,7 @@ class PolyphemusPlugin(Plugin):
             description="Creating head and base website diffs.")
 
         for f in self._files:
-            if os.path.isdir(f):
+            if not os.path.isfile(f):
                 continue
 
             fpath, fname = os.path.split(f)            
