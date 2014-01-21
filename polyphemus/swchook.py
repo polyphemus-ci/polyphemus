@@ -42,19 +42,23 @@ def clone_repo(url, dir):
     subprocess.check_call(clone_template.format(url=url, dir=dir).split(), 
                           cwd=os.getcwd(), shell=(os.name == 'nt'))
     
-def checkout_commit(commit):
+def checkout_commit(commit, cwd=None):
+    if cwd is None:
+        cwd = os.getcwd()
     subprocess.check_call(checkout_template.format(commit=commit).split(), 
-                          cwd=os.getcwd(), shell=(os.name == 'nt'))
+                          cwd=cwd, shell=(os.name == 'nt'))
 
-def merge_commit(merge_ref, rem_branch, rem_url):    
+def merge_commit(merge_ref, rem_branch, rem_url, cwd=None):    
+    if cwd is None:
+        cwd = os.getcwd()
     subprocess.check_call(rem_add_template.format(branch=rem_branch, 
                                                   url=rem_url).split(), 
-                          cwd=os.getcwd(), shell=(os.name == 'nt'))
+                          cwd=cwd, shell=(os.name == 'nt'))
     subprocess.check_call(fetch_template.format(branch=rem_branch).split(), 
-                          cwd=os.getcwd(), shell=(os.name == 'nt'))
+                          cwd=cwd, shell=(os.name == 'nt'))
     subprocess.check_call(merge_template.format(branch=rem_branch, 
                                                 commit=merge_ref).split(), 
-                          cwd=os.getcwd(), shell=(os.name == 'nt'))
+                          cwd=cwd, shell=(os.name == 'nt'))
         
 class PolyphemusPlugin(Plugin):
     """This class provides functionality for comparing SWC website PRs."""
@@ -72,11 +76,8 @@ class PolyphemusPlugin(Plugin):
             os.path.rmdir(self._base_dir)
         
         clone_repo(base_repo.clone_url, self._base_dir)
-        subprocess.check_call(["cd", self._base_dir])
-        
-        checkout_commit(base.ref)
-        subprocess.check_call(build_html.split(), shell=True)
-        subprocess.check_call(["cd", self._home_dir])
+        checkout_commit(base.ref, cwd=self._base_dir)
+        subprocess.check_call(build_html.split(), cwd=self._base_dir, shell=True)
 
     def _build_head_html(self, base, head):        
         head_repo = github3.repository(*head.repo)
@@ -86,12 +87,11 @@ class PolyphemusPlugin(Plugin):
             os.path.rmdir(self._head_dir)
                 
         clone_repo(head_repo.clone_url, self._head_dir)
-        subprocess.check_call(["cd", self._head_dir])
-        
-        checkout_commit(head.ref)
-        merge_commit(base.ref, "upstream", base_repo.clone_url)
-        subprocess.check_call(build_html.split(), shell=True)
-        subprocess.check_call(["cd", self._home_dir])
+        checkout_commit(head.ref, cwd=self._head_dir)
+        merge_commit(base.ref, "upstream", base_repo.clone_url, 
+                     cwd=self._head_dir)
+        subprocess.check_call(build_html.split(), shell=True, 
+                              cwd=self._head_dir)
 
     def _generate_diffs(self):
         if os.path.exists(self._diff_dir):
