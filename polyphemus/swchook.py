@@ -90,6 +90,6 @@ class PolyphemusPlugin(Plugin):
         
         self._files = list(pr.iter_files())
                   
-        self._build_head_html(pr.base, pr.head)
+        self._populate_head_html(pr.base, pr.head)
         self._build_base_html(pr.base)
         self._generate_diffs()
