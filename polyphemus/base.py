@@ -58,7 +58,7 @@ class PolyphemusPlugin(Plugin):
         appname="polyphemus",
         server_url=NotSpecified,
         ssh_key_file='~/.ssh/id_rsa', 
-        flask_kwargs={},
+        flask_kwargs={'static_url_path': '/static'},
         )
 
     rcdocs = {
@@ -83,6 +83,8 @@ class PolyphemusPlugin(Plugin):
                          "a key will be generated at this location."),
         'flask_kwargs': "keyword argumnets submitted to Flask() constructor.",
         }
+
+    rcupdaters = {'flask_kwargs': lambda old, new: old.update(new) or old}
 
     def update_argparser(self, parser):
         parser.add_argument('--rc', help=self.rcdocs['rc'])
