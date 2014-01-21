@@ -114,22 +114,22 @@ class PolyphemusPlugin(Plugin):
         subprocess.check_call(build_html, shell=True, cwd=self._head_dir)
 
     def _generate_diffs(self):
-        if os.path.exists(self._diff_dir):
-            shutil.rmtree(self._diff_dir)
+        # if os.path.exists(self._diff_dir):
+        #     shutil.rmtree(self._diff_dir)
 
         self._updater.update(
             status='pending', 
             description="Creating head and base website diffs.")
 
         for f in self._files:
-            fpath, fname = os.path.split(f)
-            print(fpath, fname)
-            d = os.path.join(self._diff_dir, fpath)
-            os.makedirs(d)
+            if os.path.isdir(f):
+                continue
+
+            fpath, fname = os.path.split(f)            
 
             head = os.path.join(self._head_dir, f)
             base = os.path.join(self._base_dir, f)
-            diff = os.path.join(self._diff_dir, f)
+            diff = os.path.join(self._head_dir, fpath, "diff-" + fname)
 
             try:
                 diff_txt = subprocess.check_output(
