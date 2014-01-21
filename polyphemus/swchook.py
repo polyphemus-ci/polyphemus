@@ -129,10 +129,16 @@ class PolyphemusPlugin(Plugin):
             base = os.path.join(self._base_dir, f)
             diff = os.path.join(self._diff_dir, f)
 
-            diff_txt = subprocess.check_output(
-                html_diff_template.format(file1=base, 
-                                          file2=head).split(), 
-                shell=(os.name == 'nt'))
+            try:
+                diff_txt = subprocess.check_output(
+                    html_diff_template.format(file1=base, 
+                                              file2=head).split(), 
+                    shell=(os.name == 'nt'))
+            catch OSError:
+                msg = "Error, htmldiff not installed on the server."
+                warn(msg, RuntimeError)
+                self._updater['description'] = msg
+                return 
 
             with open(diff, 'w') as f:
                 f.write(diff_txt)
