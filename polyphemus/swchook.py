@@ -114,14 +114,12 @@ class PolyphemusPlugin(Plugin):
         subprocess.check_call(build_html, shell=True, cwd=self._head_dir)
 
     def _generate_diffs(self):
-        # if os.path.exists(self._diff_dir):
-        #     shutil.rmtree(self._diff_dir)
-
         self._updater.update(
             status='pending', 
             description="Creating head and base website diffs.")
 
         for f in self._files:
+            print(f, " is file? ", os.path.isfile(f))
             if not os.path.isfile(f):
                 continue
 
@@ -172,6 +170,8 @@ class PolyphemusPlugin(Plugin):
         
         self._files = [os.path.join(*f.filename.split("/")) 
                        for f in pr.iter_files()]
+
+        print ("(hi mom) files: ", self._files)
 
         self._base_dir = os.path.join(self._home_dir, 
                                       str(pr.number), "base")
