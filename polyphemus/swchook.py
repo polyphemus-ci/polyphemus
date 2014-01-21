@@ -50,7 +50,7 @@ def checkout_commit(commit, cwd=None):
     subprocess.check_call(checkout_template.format(commit=commit).split(), 
                           cwd=cwd, shell=(os.name == 'nt'))
 
-def add_fetch_remote(rem_branch, rm_url, cwd=None):
+def add_fetch_remote(rem_branch, rem_url, cwd=None):
     if cwd is None:
         cwd = os.getcwd()
     subprocess.check_call(rem_add_template.format(branch=rem_branch, 
