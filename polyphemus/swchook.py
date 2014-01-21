@@ -100,7 +100,7 @@ class PolyphemusPlugin(Plugin):
 
         for f in self._files:
             fpath, fname = os.path.split(f)
-            d = os.path.join(diff_dir, fpath)
+            d = os.path.join(self._diff_dir, fpath)
             os.makedirs(d)
             head = os.path.join(self._head_dir, f)
             base = os.path.join(self._base_dir, f)
