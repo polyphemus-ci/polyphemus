@@ -414,7 +414,7 @@ class Plugins(object):
 
     def build_app(self):
         """Creates a default flask application."""
-        app = Flask(self.rc.appname)
+        app = Flask(self.rc.appname, **self.rc.flask_kwargs)
         for plugin in self.plugins:
             if plugin.route is None:
                 continue

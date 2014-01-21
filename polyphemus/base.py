@@ -58,6 +58,7 @@ class PolyphemusPlugin(Plugin):
         appname="polyphemus",
         server_url=NotSpecified,
         ssh_key_file='~/.ssh/id_rsa', 
+        flask_kwargs={},
         )
 
     rcdocs = {
@@ -80,6 +81,7 @@ class PolyphemusPlugin(Plugin):
         'ssh_key_file': ("The location of an SSH RSA key to use for authentication, "
                          "defaults to '~/.ssh/id_rsa'. If this file does not exist "
                          "a key will be generated at this location."),
+        'flask_kwargs': "keyword argumnets submitted to Flask() constructor.",
         }
 
     def update_argparser(self, parser):
