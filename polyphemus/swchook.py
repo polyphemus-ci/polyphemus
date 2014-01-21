@@ -35,7 +35,7 @@ fetch_template = """git fetch {branch}"""
 
 merge_template = """git merge {branch}/{commit}"""
 
-html_diff_template = """htmldiff {file1} {file2} > {diff}"""
+html_diff_template = """htmldiff {file1} {file2}"""
 
 build_html = """make clean; make cache; make check;"""
 
@@ -102,13 +102,18 @@ class PolyphemusPlugin(Plugin):
             fpath, fname = os.path.split(f)
             d = os.path.join(self._diff_dir, fpath)
             os.makedirs(d)
+
             head = os.path.join(self._head_dir, f)
             base = os.path.join(self._base_dir, f)
             diff = os.path.join(self._diff_dir, f)
-            subprocess.check_call(html_diff_template.format(file1=base, 
-                                                            file2=head, 
-                                                            diff=diff).split(), 
-                                  shell=(os.name == 'nt'))
+
+            diff_txt = subprocess.check_output(
+                html_diff_template.format(file1=base, 
+                                          file2=head).split(), 
+                shell=(os.name == 'nt'))
+
+            with open(diff, 'w') as f:
+                f.write(diff_txt)
 
     def _dump_state(self):
         with open('swc_state.json', 'w') as outfile:
