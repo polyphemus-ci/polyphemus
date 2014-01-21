@@ -129,7 +129,7 @@ class PolyphemusPlugin(Plugin):
             event.data['description'] = "Error, PR #{0} is not mergeable.".format(pr.number)
             return 
         
-        self._files = [os.path.join(f.filename.split("/")) for f in pr.iter_files()]
+        self._files = [os.path.join(*f.filename.split("/")) for f in pr.iter_files()]
 
         self._base_dir = os.path.join(self._home_dir, str(pr.number), "base")
         self._head_dir = os.path.join(self._home_dir, str(pr.number), "head")
