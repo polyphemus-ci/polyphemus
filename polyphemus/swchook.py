@@ -55,7 +55,7 @@ class PolyphemusPlugin(Plugin):
         cmd += ["cd ", self._home_dir]
         subprocess.check_call(cmd, shell=(os.name == 'nt'))
 
-    def _populate_head_html(self, base, head):        
+    def _build_head_html(self, base, head):        
         head_repo = github3.repository(*head.repo)
         base_repo = github3.repository(*base.repo)
 
@@ -90,6 +90,6 @@ class PolyphemusPlugin(Plugin):
         
         self._files = list(pr.iter_files())
                   
-        self._populate_head_html(pr.base, pr.head)
+        self._build_head_html(pr.base, pr.head)
         self._build_base_html(pr.base)
         self._generate_diffs()
