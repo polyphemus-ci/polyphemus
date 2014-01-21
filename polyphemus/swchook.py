@@ -41,10 +41,10 @@ class PolyphemusPlugin(Plugin):
 
     def __init__(self):
         self._files = []
-        self._home_dir = os.getcwd()
-        self._base_dir = "base"
-        self._head_dir = "head"
-        self._diff_dir = "diff"
+        self._home_dir = os.path.abspath(os.getcwd())
+        self._base_dir = os.path.join(self._home_dir, "base")
+        self._head_dir = os.path.join(self._home_dir, "head")
+        self._diff_dir = os.path.join(self._home_dir, "diff")
 
     def _build_base_html(self, base):
         base_repo = github3.repository(*base.repo)
@@ -69,13 +69,16 @@ class PolyphemusPlugin(Plugin):
 
     def _generate_diffs(self):
         for f in self._files:
-            fpath = f.split("/")
-            d = os.path.join(diff_dir, *fpath[:-1])
+            fpath, fname = os.path.split(f)
+            d = os.path.join(diff_dir, fpath)
             os.makedirs(d)
-            head = os.path.join(self._head_dir, fpath)
-            base = os.path.join(self._base_dir, fpath)
-            diff = os.path.join(self._diff_dir, fpath)
-            subprocess.check_call(html_diff_template.format(base, head, diff).split(), shell=(os.name == 'nt'))
+            head = os.path.join(self._head_dir, f)
+            base = os.path.join(self._base_dir, f)
+            diff = os.path.join(self._diff_dir, f)
+            subprocess.check_call(html_diff_template.format(file1=base, 
+                                                            file2=head, 
+                                                            diff=diff).split(), 
+                                  shell=(os.name == 'nt'))
                     
     def execute(self, rc):
         event_name = rc.event.name
@@ -88,7 +91,7 @@ class PolyphemusPlugin(Plugin):
             event.data['description'] = "Error, PR is not mergeable."
             return 
         
-        self._files = list(pr.iter_files())
+        self._files = [os.path.join(f.split("/")) for f in pr.iter_files()]
                   
         self._build_head_html(pr.base, pr.head)
         self._build_base_html(pr.base)
