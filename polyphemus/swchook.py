@@ -21,6 +21,7 @@ import github3
 from .utils import RunControl, NotSpecified, PersistentCache
 from .plugins import Plugin
 from .event import Event, runfor
+from .githubbase import set_pull_request_status
 
 if sys.version_info[0] >= 3:
     basestring = str
@@ -33,7 +34,7 @@ rem_add_template = """git remote add {branch} {url}"""
 
 fetch_template = """git fetch {branch}"""
 
-merge_template = """git merge {branch}/{commit}"""
+merge_template = """git merge {commit}"""
 
 html_diff_template = """htmldiff {file1} {file2}"""
 
@@ -49,7 +50,7 @@ def checkout_commit(commit, cwd=None):
     subprocess.check_call(checkout_template.format(commit=commit).split(), 
                           cwd=cwd, shell=(os.name == 'nt'))
 
-def merge_commit(merge_ref, rem_branch, rem_url, cwd=None):    
+def add_fetch_remote(rem_branch, rm_url, cwd=None):
     if cwd is None:
         cwd = os.getcwd()
     subprocess.check_call(rem_add_template.format(branch=rem_branch, 
@@ -57,8 +58,9 @@ def merge_commit(merge_ref, rem_branch, rem_url, cwd=None):
                           cwd=cwd, shell=(os.name == 'nt'))
     subprocess.check_call(fetch_template.format(branch=rem_branch).split(), 
                           cwd=cwd, shell=(os.name == 'nt'))
-    subprocess.check_call(merge_template.format(branch=rem_branch, 
-                                                commit=merge_ref).split(), 
+
+def merge_commit(merge_ref, cwd=None):    
+    subprocess.check_call(merge_template.format(commit=merge_ref).split(), 
                           cwd=cwd, shell=(os.name == 'nt'))
         
 class PolyphemusPlugin(Plugin):
@@ -88,9 +90,10 @@ class PolyphemusPlugin(Plugin):
             shutil.rmtree(self._head_dir)
                 
         clone_repo(head_repo.clone_url, self._head_dir)
-        checkout_commit(head.ref, cwd=self._head_dir)
-        merge_commit(base.ref, "upstream", base_repo.clone_url, 
-                     cwd=self._head_dir)
+        add_fetch_remote("upstream", base_repo.clone_url, 
+                         cwd=self._head_dir)
+        checkout_commit(base.ref, cwd=self._head_dir)
+        merge_commit(head.ref, cwd=self._head_dir)
         subprocess.check_call(build_html, shell=True, 
                               cwd=self._head_dir)
 
@@ -139,7 +142,8 @@ class PolyphemusPlugin(Plugin):
         self._base_dir = os.path.join(self._home_dir, str(pr.number), "base")
         self._head_dir = os.path.join(self._home_dir, str(pr.number), "head")
         self._diff_dir = os.path.join(self._home_dir, str(pr.number), "diff")
-                  
+
+        
         self._build_head_html(pr.base, pr.head)
         self._build_base_html(pr.base)
         self._generate_diffs()
