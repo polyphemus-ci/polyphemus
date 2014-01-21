@@ -90,7 +90,7 @@ class PolyphemusPlugin(Plugin):
             json.dumps({'base': self._base_dir, 
                         'head': self._head_dir, 
                         'diff': self._diff_dir,
-                        'files': self._files}
+                        'files': self._files},
                        outfile, indent=4, separators=(',', ': '))
                     
     def execute(self, rc):
@@ -104,7 +104,7 @@ class PolyphemusPlugin(Plugin):
             event.data['description'] = "Error, PR is not mergeable."
             return 
         
-        self._files = [os.path.join(f.split("/")) for f in pr.iter_files()]
+        self._files = [os.path.join(f.filename.split("/")) for f in pr.iter_files()]
                   
         self._build_head_html(pr.base, pr.head)
         self._build_base_html(pr.base)
