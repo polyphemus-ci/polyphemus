@@ -123,6 +123,7 @@ class PolyphemusPlugin(Plugin):
 
         for f in self._files:
             fpath, fname = os.path.split(f)
+            print(fpath, fname)
             d = os.path.join(self._diff_dir, fpath)
             os.makedirs(d)
 
