@@ -68,7 +68,7 @@ class PolyphemusPlugin(Plugin):
         subprocess.check_call(cmd, shell=(os.name == 'nt'))
 
     def _generate_diffs(self):
-        for f in self_.files:
+        for f in self._files:
             fpath = f.split("/")
             d = os.path.join(diff_dir, *fpath[:-1])
             os.makedirs(d)
