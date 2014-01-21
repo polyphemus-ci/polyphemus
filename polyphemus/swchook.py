@@ -19,27 +19,18 @@ from .event import Event, runfor
 if sys.version_info[0] >= 3:
     basestring = str
 
-clone_template = \
-"""
-git clone {url} {dir};
+clone_template = """git clone {url} {dir};
 cd {dir};
 git checkout {commit};"""
 
-merge_template = \
-"""
-git remote add upstream {url};
+merge_template = """git remote add upstream {url};
 git fetch upstream;
 git merge upstream/{commit};
 """
 
-html_diff_template = \
-"""
-htmldiff {file1} {file2} > {diff};
-"""
+html_diff_template = """htmldiff {file1} {file2} > {diff};"""
 
-build_html = \
-"""
-make clean;
+build_html = """make clean;
 make cache;
 make check;"""
 
@@ -93,11 +84,11 @@ class PolyphemusPlugin(Plugin):
         event = rc.event = Event(name='swc-status', data={'status': 'error', 
                                  'number': pr.number, 'description': ''})
         
-        if !pr.mergeable:
+        if not pr.mergeable:
             event.data['description'] = "Error, PR is not mergeable."
             return 
         
-        self._files.append(f) for f in pr.iterfiles()
+        self._files = list(pr.iterfiles())
                   
         self._build_head_html(pr.base, pr.head)
         self._build_base_html(pr.base)
