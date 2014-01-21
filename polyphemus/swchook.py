@@ -24,21 +24,38 @@ from .event import Event, runfor
 if sys.version_info[0] >= 3:
     basestring = str
 
-clone_template = """git clone {url} {dir};
-cd {dir};
-git checkout {commit};"""
+clone_template = """git clone {url} {dir}"""
 
-merge_template = """git remote add upstream {url};
-git fetch upstream;
-git merge upstream/{commit};
-"""
+checkout_template = """git checkout {commit}"""
 
-html_diff_template = """htmldiff {file1} {file2} > {diff};"""
+rem_add_template = """git remote add {branch} {url}"""
 
-build_html = """make clean;
-make cache;
-make check;"""
+fetch_template = """git fetch {branch}"""
 
+merge_template = """git merge {branch}/{commit}"""
+
+html_diff_template = """htmldiff {file1} {file2} > {diff}"""
+
+build_html = """make clean; make cache; make check;"""
+
+def clone_repo(url, dir):
+    subprocess.check_call(clone_template.format(url=url, dir=dir).split(), 
+                          cwd=os.getcwd(), shell=(os.name == 'nt'))
+    
+def checkout_commit(commit):
+    subprocess.check_call(checkout_template.format(commit=commit).split(), 
+                          cwd=os.getcwd(), shell=(os.name == 'nt'))
+
+def merge_commit(merge_ref, rem_branch, rem_url):    
+    subprocess.check_call(rem_add_template.format(branch=rem_branch, 
+                                                  url=rem_url).split(), 
+                          cwd=os.getcwd(), shell=(os.name == 'nt'))
+    subprocess.check_call(fetch_template.format(branch=rem_branch).split(), 
+                          cwd=os.getcwd(), shell=(os.name == 'nt'))
+    subprocess.check_call(merge_template.format(branch=rem_branch, 
+                                                commit=merge_ref).split(), 
+                          cwd=os.getcwd(), shell=(os.name == 'nt'))
+        
 class PolyphemusPlugin(Plugin):
     """This class provides functionality for comparing SWC website PRs."""
 
@@ -47,32 +64,39 @@ class PolyphemusPlugin(Plugin):
     def __init__(self):
         self._files = []
         self._home_dir = os.path.abspath(os.getcwd())
-        self._base_dir = os.path.join(self._home_dir, "base")
-        self._head_dir = os.path.join(self._home_dir, "head")
-        self._diff_dir = os.path.join(self._home_dir, "diff")
 
     def _build_base_html(self, base):
         base_repo = github3.repository(*base.repo)
-        cmd = []
-        cmd += clone_template.format(url=base_repo.clone_url, 
-                                     dir=self._base_dir, commit=base).split()
-        cmd += build_html.split()
-        cmd += ["cd ", self._home_dir]
-        subprocess.check_call(cmd, shell=(os.name == 'nt'))
+
+        if os.path.exists(self._base_dir):
+            os.path.rmdir(self._base_dir)
+        
+        clone_repo(base_repo.clone_url, self._base_dir)
+        subprocess.check_call(["cd", self._base_dir])
+        
+        checkout_commit(base.ref)
+        subprocess.check_call(build_html.split(), shell=True)
+        subprocess.check_call(["cd", self._home_dir])
 
     def _build_head_html(self, base, head):        
         head_repo = github3.repository(*head.repo)
         base_repo = github3.repository(*base.repo)
 
-        cmd = []
-        cmd += clone_template.format(url=head_repo.clone_url, dir=self._head_dir, 
-                                     commit=head.ref).split()
-        cmd += merge_template.format(url=base_repo.clone_url, commit=base.ref).split()
-        cmd += build_html.split()
-        cmd += ["cd ", self._home_dir]
-        subprocess.check_call(cmd, shell=(os.name == 'nt'))
+        if os.path.exists(self._head_dir):
+            os.path.rmdir(self._head_dir)
+                
+        clone_repo(head_repo.clone_url, self._head_dir)
+        subprocess.check_call(["cd", self._head_dir])
+        
+        checkout_commit(head.ref)
+        merge_commit(base.ref, "upstream", base_repo.clone_url)
+        subprocess.check_call(build_html.split(), shell=True)
+        subprocess.check_call(["cd", self._home_dir])
 
     def _generate_diffs(self):
+        if os.path.exists(self._diff_dir):
+            os.path.rmdir(self._diff_dir)
+
         for f in self._files:
             fpath, fname = os.path.split(f)
             d = os.path.join(diff_dir, fpath)
@@ -101,10 +125,14 @@ class PolyphemusPlugin(Plugin):
                                  'number': pr.number, 'description': ''})
         
         if not pr.mergeable:
-            event.data['description'] = "Error, PR is not mergeable."
+            event.data['description'] = "Error, PR #{0} is not mergeable.".format(pr.number)
             return 
         
         self._files = [os.path.join(f.filename.split("/")) for f in pr.iter_files()]
+
+        self._base_dir = os.path.join(self._home_dir, str(pr.number), "base")
+        self._head_dir = os.path.join(self._home_dir, str(pr.number), "head")
+        self._diff_dir = os.path.join(self._home_dir, str(pr.number), "diff")
                   
         self._build_head_html(pr.base, pr.head)
         self._build_base_html(pr.base)
