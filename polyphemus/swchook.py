@@ -126,9 +126,8 @@ class PolyphemusPlugin(Plugin):
             base = os.path.join(self._base_dir, f)
             diff = os.path.join(self._head_dir, fpath, "diff-" + fname)
 
-            print(head, " is file? ", os.path.isfile(head))
-            print(base, " is file? ", os.path.isfile(base))
-            if not os.path.isfile(head):
+            # if addition or deletion, just skip
+            if not os.path.isfile(head) or not os.path.isfile(head):
                 continue
 
             fpath, fname = os.path.split(f)            
@@ -174,8 +173,6 @@ class PolyphemusPlugin(Plugin):
         
         self._files = [os.path.join(*f.filename.split("/")) 
                        for f in pr.iter_files()]
-
-        print ("(hi mom) files: ", self._files)
 
         self._base_dir = os.path.join(self._home_dir, 
                                       str(pr.number), "base")
