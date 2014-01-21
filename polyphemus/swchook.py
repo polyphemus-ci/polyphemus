@@ -120,6 +120,7 @@ class PolyphemusPlugin(Plugin):
 
         for f in self._files:
             f = os.path.join("_site", f)
+            fpath, fname = os.path.split(f)
 
             head = os.path.join(self._head_dir, f)
             base = os.path.join(self._base_dir, f)
@@ -167,7 +168,7 @@ class PolyphemusPlugin(Plugin):
 
         if not pr.mergeable:
             msg = "Error, PR #{0} is not mergeable.".format(pr.number)
-            warn(msg, RuntimeError)
+            warn(msg, RuntimeWarning)
             rc.event.data['status'] = 'failure'
             self._updater['description'] = msg
             return 
