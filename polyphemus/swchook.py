@@ -151,7 +151,8 @@ class PolyphemusPlugin(Plugin):
                         'diff': self._diff_dir,
                         'files': self._files},
                        outfile, indent=4, separators=(',', ': '))
-                    
+
+    @runfor('swc-hook', 'github-pr-new', 'github-pr-sync')                    
     def execute(self, rc):
         event_name = rc.event.name
         pr = rc.event.data  # pull request object
