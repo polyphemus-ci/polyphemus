@@ -121,15 +121,16 @@ class PolyphemusPlugin(Plugin):
         for f in self._files:
             f = os.path.join("_site", f)
 
-            print(f, " is file? ", os.path.isfile(f))
-            if not os.path.isfile(f):
-                continue
-
-            fpath, fname = os.path.split(f)            
-
             head = os.path.join(self._head_dir, f)
             base = os.path.join(self._base_dir, f)
             diff = os.path.join(self._head_dir, fpath, "diff-" + fname)
+
+            print(head, " is file? ", os.path.isfile(head))
+            print(base, " is file? ", os.path.isfile(base))
+            if not os.path.isfile(head):
+                continue
+
+            fpath, fname = os.path.split(f)            
 
             try:
                 diff_txt = subprocess.check_output(
