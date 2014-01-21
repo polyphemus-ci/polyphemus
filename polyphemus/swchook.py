@@ -41,31 +41,36 @@ html_diff_template = """htmldiff {file1} {file2}"""
 build_html = """make clean; make cache; make check;"""
 
 def clone_repo(url, dir):
-    subprocess.check_call(clone_template.format(url=url, dir=dir).split(), 
-                          cwd=os.getcwd(), shell=(os.name == 'nt'))
+    subprocess.check_call(
+        clone_template.format(url=url, dir=dir).split(), 
+        cwd=os.getcwd(), shell=(os.name == 'nt'))
     
 def checkout_commit(commit, cwd=None):
     if cwd is None:
         cwd = os.getcwd()
-    subprocess.check_call(checkout_template.format(commit=commit).split(), 
-                          cwd=cwd, shell=(os.name == 'nt'))
+    subprocess.check_call(
+        checkout_template.format(commit=commit).split(), 
+        cwd=cwd, shell=(os.name == 'nt'))
 
 def add_fetch_remote(rem_branch, rem_url, cwd=None):
     if cwd is None:
         cwd = os.getcwd()
-    subprocess.check_call(rem_add_template.format(branch=rem_branch, 
-                                                  url=rem_url).split(), 
-                          cwd=cwd, shell=(os.name == 'nt'))
-    subprocess.check_call(fetch_template.format(branch=rem_branch).split(), 
-                          cwd=cwd, shell=(os.name == 'nt'))
+    subprocess.check_call(
+        rem_add_template.format(branch=rem_branch, url=rem_url).split(), 
+        cwd=cwd, shell=(os.name == 'nt'))
+    subprocess.check_call(
+        fetch_template.format(branch=rem_branch).split(), 
+        cwd=cwd, shell=(os.name == 'nt'))
 
 def merge_commit(merge_branch, merge_ref, cwd=None):    
-    subprocess.check_call(merge_template.format(branch=merge_branch, 
-                                                commit=merge_ref).split(), 
-                          cwd=cwd, shell=(os.name == 'nt'))
+    subprocess.check_call(
+        merge_template.format(branch=merge_branch, 
+                              commit=merge_ref).split(), 
+        cwd=cwd, shell=(os.name == 'nt'))
         
 class PolyphemusPlugin(Plugin):
-    """This class provides functionality for comparing SWC website PRs."""
+    """This class provides functionality for comparing SWC website PRs.
+    """
 
     requires = ('polyphemus.swcbase',)
 
@@ -79,11 +84,13 @@ class PolyphemusPlugin(Plugin):
         if os.path.exists(self._base_dir):
             shutil.rmtree(self._base_dir)
         
-        self._updater.data.update(status='pending', description="Getting base repository.")
+        self._updater.update(
+            status='pending', description="Getting base repository.")
         clone_repo(base_repo.clone_url, self._base_dir)
         checkout_commit(base.ref, cwd=self._base_dir)
 
-        self._updater.data.update(status='pending', description="Building base website.")
+        self._updater.update(
+            status='pending', description="Building base website.")
         subprocess.check_call(build_html, cwd=self._base_dir, shell=True)
 
     def _build_head_html(self, base, head):        
@@ -93,22 +100,25 @@ class PolyphemusPlugin(Plugin):
         if os.path.exists(self._head_dir):
             shutil.rmtree(self._head_dir)
                 
-        self._updater.data.update(status='pending', description="Getting head repository.")
+        self._updater.update(
+            status='pending', description="Getting head repository.")
         clone_repo(head_repo.clone_url, self._head_dir)
         add_fetch_remote("upstream", base_repo.clone_url, 
                          cwd=self._head_dir)
         checkout_commit(base.ref, cwd=self._head_dir)
         merge_commit("origin", head.ref, cwd=self._head_dir)
 
-        self._updater.data.update(status='pending', description="Building head website.")
+        self._updater.update(
+            status='pending', description="Building head website.")
         subprocess.check_call(build_html, shell=True, cwd=self._head_dir)
 
     def _generate_diffs(self):
         if os.path.exists(self._diff_dir):
             shutil.rmtree(self._diff_dir)
 
-        self._updater.data.update(status='pending', 
-                                  description="Creating head and base website diffs.")
+        self._updater.update(
+            status='pending', 
+            description="Creating head and base website diffs.")
 
         for f in self._files:
             fpath, fname = os.path.split(f)
@@ -139,22 +149,27 @@ class PolyphemusPlugin(Plugin):
         event_name = rc.event.name
         pr = rc.event.data  # pull request object
 
-        self._updater = rc.event = Event(name='swc-status', 
-                                         data={'status': 'error', 
-                                               'number': pr.number, 
-                                               'description': ''})
-        
+        rc.event = Event(name='swc-status', 
+                         data={'status': 'error', 
+                               'number': pr.number, 
+                               'description': ''})
+        self._updater = rc.event.data
+
         if not pr.mergeable:
             msg = "Error, PR #{0} is not mergeable.".format(pr.number)
             warn(msg, RuntimeError)
-            self._updater.data['description'] = msg
+            self._updater['description'] = msg
             return 
         
-        self._files = [os.path.join(*f.filename.split("/")) for f in pr.iter_files()]
+        self._files = [os.path.join(*f.filename.split("/")) 
+                       for f in pr.iter_files()]
 
-        self._base_dir = os.path.join(self._home_dir, str(pr.number), "base")
-        self._head_dir = os.path.join(self._home_dir, str(pr.number), "head")
-        self._diff_dir = os.path.join(self._home_dir, str(pr.number), "diff")
+        self._base_dir = os.path.join(self._home_dir, 
+                                      str(pr.number), "base")
+        self._head_dir = os.path.join(self._home_dir, 
+                                      str(pr.number), "head")
+        self._diff_dir = os.path.join(self._home_dir, 
+                                      str(pr.number), "diff")
 
         self._build_head_html(pr.base, pr.head)
         self._build_base_html(pr.base)
