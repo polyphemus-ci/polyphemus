@@ -510,8 +510,8 @@ def wrap_response(plugins, plugin):
 
     """
     @wraps(plugin.response)
-    def response():
-        resp, event = plugin.response(plugins.rc)
+    def response(*args, **kwargs):
+        resp, event = plugin.response(plugins.rc, *args, **kwargs)
         if event is not None:
             plugins.rc.event = event
             plugins.execute()
