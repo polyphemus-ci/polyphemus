@@ -10,6 +10,7 @@ import os
 import shutil
 import sys
 import subprocess
+from warnings import warn
 
 try:
     import simplejson as json
@@ -136,7 +137,7 @@ class PolyphemusPlugin(Plugin):
                     shell=(os.name == 'nt'))
             except OSError:
                 msg = "Error, htmldiff not installed on the server."
-                warn(msg, RuntimeError)
+                warn(msg, RuntimeWarning)
                 self._updater['description'] = msg
                 return 
 
