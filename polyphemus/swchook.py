@@ -32,11 +32,6 @@ git fetch upstream;
 git merge upstream/{commit};
 """
 
-cp_template = \
-"""
-cp {file1} {file2};
-"""
-
 html_diff_template = \
 """
 htmldiff {file1} {file2} > {diff};
@@ -45,6 +40,7 @@ htmldiff {file1} {file2} > {diff};
 build_html = \
 """
 make clean;
+make cache;
 make check;"""
 
 class PolyphemusPlugin(Plugin):
@@ -53,53 +49,43 @@ class PolyphemusPlugin(Plugin):
     requires = ('polyphemus.swcbase',)
 
     def __init__(self):
-        _files = []   
-        _base_dir = os.getcwd()
+        self._files = []
+        self._home_dir = os.getcwd()
+        self._base_dir = "base"
+        self._head_dir = "head"
+        self._diff_dir = "diff"
 
-    def _cp_html(self, grouping):
-        for f in _files:
-            path = f.split("/")[:-1]
-            fname = f.split("/")[-1]
-            htmlpath = os.path.join("_site", *path, fname)
-            if os.path.exists(htmlpath):
-                comppath = os.path.join(_base_dir, "compare", *path, 
-                                        fname.split(".html")[0], 
-                                        grouping ".html")
-                cp_template.format(file1=htmlpath, file2=compath)
-
-    def _populate_base_html(self, base_repo, sha1):
+    def _build_base_html(self, base):
+        base_repo = github3.repository(*base.repo)
         cmd = []
-        cmd += clone_template.format(url=base_repo.clone_url, dir="base", commit=sha1).split()
-        # subprocess.check_call(cmd, shell=(os.name == 'nt'))
+        cmd += clone_template.format(url=base_repo.clone_url, 
+                                     dir=self._base_dir, commit=base).split()
         cmd += build_html.split()
-        subprocess.check_call(cmd, shell=(os.name == 'nt'))
-        _cp_html("base")
-        cmd = "rm -r base;".split()
-        # subprocess.check_call("rm -r base".split(), shell=(os.name == 'nt'))
-        cmd += ["cd ", _base_dir]
+        cmd += ["cd ", self._home_dir]
         subprocess.check_call(cmd, shell=(os.name == 'nt'))
 
-    def _populate_head_html(self, base_repo, base_sha1, head_repo, head_sha1):
+    def _populate_head_html(self, base, head):        
+        head_repo = github3.repository(*head.repo)
+        base_repo = github3.repository(*base.repo)
+
         cmd = []
-        cmd += clone_template.format(url=head_repo.clone_url, dir="head", 
-                                     commit=head_sha1).split()
-        # subprocess.check_call(cmd, shell=(os.name == 'nt'))
-        merge_template.format(url=base_repo.clone_url, commit=base_sha1).split()
-        # subprocess.check_call(cmd, shell=(os.name == 'nt'))
+        cmd += clone_template.format(url=head_repo.clone_url, dir=self_.head_dir, 
+                                     commit=head).split()
+        cmd += merge_template.format(url=base_repo.clone_url, commit=base).split()
         cmd += build_html.split()
-        subprocess.check_call(cmd, shell=(os.name == 'nt'))
-        _cp_html("head")
-        cmd = "rm -r head;".split()
-        cmd += ["cd ", _base_dir]
+        cmd += ["cd ", self._home_dir]
         subprocess.check_call(cmd, shell=(os.name == 'nt'))
 
     def _generate_diffs(self):
-        for root, dirs, files in os.walk():
-            for dir in dirs:
-                if os.path.exists(os.path.join("base.html")) and os.path.exists(os.path.join("head.html")):
-                    html_diff_template.format("base.html", "head.html", "diff.html")
-                    subprocess.check_call(html_diff_template.split(), shell=(os.name == 'nt'))
-        
+        for f in self_.files:
+            fpath = f.split("/")
+            d = os.path.join(diff_dir, *fpath[:-1])
+            os.makedirs(d)
+            head = os.path.join(self._head_dir, fpath)
+            base = os.path.join(self._base_dir, fpath)
+            diff = os.path.join(self._diff_dir, fpath)
+            subprocess.check_call(html_diff_template.format(base, head, diff).split(), shell=(os.name == 'nt'))
+                    
     def execute(self, rc):
         event_name = rc.event.name
         pr = rc.event.data  # pull request object
@@ -111,11 +97,8 @@ class PolyphemusPlugin(Plugin):
             event.data['description'] = "Error, PR is not mergeable."
             return 
         
-        _files.append(f) for f in pr.iterfiles()
-        
-        head_repo = github3.repository(*pr.head.repo)
-        base_repo = github3.repository(*pr.base.repo)
-    
-        _populate_base_html(base_repo, pr.base)
-        _populate_head_html(head_repo, pr.head)
-        _generate_diffs()
+        self._files.append(f) for f in pr.iterfiles()
+                  
+        self._build_head_html(pr.base, pr.head)
+        self._build_base_html(pr.base)
+        self._generate_diffs()
