@@ -7,6 +7,7 @@ SWC Hook API
 """
 from __future__ import print_function
 import os
+import shutil
 import sys
 import subprocess
 
@@ -73,7 +74,7 @@ class PolyphemusPlugin(Plugin):
         base_repo = github3.repository(*base.repo)
 
         if os.path.exists(self._base_dir):
-            os.rmtree(self._base_dir)
+            shutil.rmtree(self._base_dir)
         
         clone_repo(base_repo.clone_url, self._base_dir)
         checkout_commit(base.ref, cwd=self._base_dir)
@@ -84,7 +85,7 @@ class PolyphemusPlugin(Plugin):
         base_repo = github3.repository(*base.repo)
 
         if os.path.exists(self._head_dir):
-            os.rmtree(self._head_dir)
+            shutil.rmtree(self._head_dir)
                 
         clone_repo(head_repo.clone_url, self._head_dir)
         checkout_commit(head.ref, cwd=self._head_dir)
@@ -95,7 +96,7 @@ class PolyphemusPlugin(Plugin):
 
     def _generate_diffs(self):
         if os.path.exists(self._diff_dir):
-            os.rmtree(self._diff_dir)
+            shutil.rmtree(self._diff_dir)
 
         for f in self._files:
             fpath, fname = os.path.split(f)
