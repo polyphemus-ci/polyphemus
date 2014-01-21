@@ -135,7 +135,9 @@ class PolyphemusPlugin(Plugin):
                                  'number': pr.number, 'description': ''})
         
         if not pr.mergeable:
-            event.data['description'] = "Error, PR #{0} is not mergeable.".format(pr.number)
+            msg = "Error, PR #{0} is not mergeable.".format(pr.number)
+            warn(msg, RuntimeError)
+            event.data['description'] = msg
             return 
         
         self._files = [os.path.join(*f.filename.split("/")) for f in pr.iter_files()]
@@ -144,8 +146,10 @@ class PolyphemusPlugin(Plugin):
         self._head_dir = os.path.join(self._home_dir, str(pr.number), "head")
         self._diff_dir = os.path.join(self._home_dir, str(pr.number), "diff")
 
-        
+        event.data.update(status='pending', description="Building head website.")
         self._build_head_html(pr.base, pr.head)
+        event.data.update(status='pending', description="Building base website.")
         self._build_base_html(pr.base)
+        event.data.update(status='pending', description="Comparing head and base website.")
         self._generate_diffs()
         self._dump_state()
