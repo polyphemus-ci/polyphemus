@@ -60,9 +60,9 @@ class PolyphemusPlugin(Plugin):
         base_repo = github3.repository(*base.repo)
 
         cmd = []
-        cmd += clone_template.format(url=head_repo.clone_url, dir=self_.head_dir, 
-                                     commit=head).split()
-        cmd += merge_template.format(url=base_repo.clone_url, commit=base).split()
+        cmd += clone_template.format(url=head_repo.clone_url, dir=self._head_dir, 
+                                     commit=head.ref).split()
+        cmd += merge_template.format(url=base_repo.clone_url, commit=base.ref).split()
         cmd += build_html.split()
         cmd += ["cd ", self._home_dir]
         subprocess.check_call(cmd, shell=(os.name == 'nt'))

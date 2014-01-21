@@ -32,7 +32,7 @@ from .githubbase import get_pull_request_status, ensure_logged_in
 class PolyphemusPlugin(Plugin):
     """This class routes the dashboard."""
 
-    requires = ('polyphemus.batlabrun',)
+#    requires = ('polyphemus.batlabrun',)
 
     route = '/dashboard'
 
