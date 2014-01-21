@@ -134,7 +134,7 @@ class PolyphemusPlugin(Plugin):
                     html_diff_template.format(file1=base, 
                                               file2=head).split(), 
                     shell=(os.name == 'nt'))
-            catch OSError:
+            except OSError:
                 msg = "Error, htmldiff not installed on the server."
                 warn(msg, RuntimeError)
                 self._updater['description'] = msg
@@ -164,6 +164,7 @@ class PolyphemusPlugin(Plugin):
         if not pr.mergeable:
             msg = "Error, PR #{0} is not mergeable.".format(pr.number)
             warn(msg, RuntimeError)
+            rc.event.data['status'] = 'failure'
             self._updater['description'] = msg
             return 
         
