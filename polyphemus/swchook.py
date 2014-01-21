@@ -119,6 +119,8 @@ class PolyphemusPlugin(Plugin):
             description="Creating head and base website diffs.")
 
         for f in self._files:
+            f = os.path.join("_site", f)
+
             print(f, " is file? ", os.path.isfile(f))
             if not os.path.isfile(f):
                 continue
