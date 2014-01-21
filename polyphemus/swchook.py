@@ -79,8 +79,11 @@ class PolyphemusPlugin(Plugin):
         if os.path.exists(self._base_dir):
             shutil.rmtree(self._base_dir)
         
+        self._updater.data.update(status='pending', description="Getting base repository.")
         clone_repo(base_repo.clone_url, self._base_dir)
         checkout_commit(base.ref, cwd=self._base_dir)
+
+        self._updater.data.update(status='pending', description="Building base website.")
         subprocess.check_call(build_html, cwd=self._base_dir, shell=True)
 
     def _build_head_html(self, base, head):        
@@ -90,17 +93,22 @@ class PolyphemusPlugin(Plugin):
         if os.path.exists(self._head_dir):
             shutil.rmtree(self._head_dir)
                 
+        self._updater.data.update(status='pending', description="Getting head repository.")
         clone_repo(head_repo.clone_url, self._head_dir)
         add_fetch_remote("upstream", base_repo.clone_url, 
                          cwd=self._head_dir)
         checkout_commit(base.ref, cwd=self._head_dir)
         merge_commit("origin", head.ref, cwd=self._head_dir)
-        subprocess.check_call(build_html, shell=True, 
-                              cwd=self._head_dir)
+
+        self._updater.data.update(status='pending', description="Building head website.")
+        subprocess.check_call(build_html, shell=True, cwd=self._head_dir)
 
     def _generate_diffs(self):
         if os.path.exists(self._diff_dir):
             shutil.rmtree(self._diff_dir)
+
+        self._updater.data.update(status='pending', 
+                                  description="Creating head and base website diffs.")
 
         for f in self._files:
             fpath, fname = os.path.split(f)
@@ -131,13 +139,15 @@ class PolyphemusPlugin(Plugin):
         event_name = rc.event.name
         pr = rc.event.data  # pull request object
 
-        event = rc.event = Event(name='swc-status', data={'status': 'error', 
-                                 'number': pr.number, 'description': ''})
+        self._updater = rc.event = Event(name='swc-status', 
+                                         data={'status': 'error', 
+                                               'number': pr.number, 
+                                               'description': ''})
         
         if not pr.mergeable:
             msg = "Error, PR #{0} is not mergeable.".format(pr.number)
             warn(msg, RuntimeError)
-            event.data['description'] = msg
+            self._updater.data['description'] = msg
             return 
         
         self._files = [os.path.join(*f.filename.split("/")) for f in pr.iter_files()]
@@ -146,10 +156,7 @@ class PolyphemusPlugin(Plugin):
         self._head_dir = os.path.join(self._home_dir, str(pr.number), "head")
         self._diff_dir = os.path.join(self._home_dir, str(pr.number), "diff")
 
-        event.data.update(status='pending', description="Building head website.")
         self._build_head_html(pr.base, pr.head)
-        event.data.update(status='pending', description="Building base website.")
         self._build_base_html(pr.base)
-        event.data.update(status='pending', description="Comparing head and base website.")
         self._generate_diffs()
         self._dump_state()
