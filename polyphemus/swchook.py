@@ -75,9 +75,12 @@ class PolyphemusPlugin(Plugin):
 
     requires = ('polyphemus.swcbase',)
 
+    defaultrc = RunControl(
+        flask_kwargs={'static_folder': os.path.join(os.getcwd(), 'static')}
+        )
+
     def __init__(self):
         self._files = []
-        self._home_dir = os.path.abspath(os.getcwd())
 
     def _build_base_html(self, base):
         base_repo = github3.repository(*base.repo)
@@ -118,39 +121,44 @@ class PolyphemusPlugin(Plugin):
             status='pending', 
             description="Creating head and base website diffs.")
 
+        print(self._files)
         for f in self._files:
             f = os.path.join("_site", f)
+            print(f)
             fpath, fname = os.path.split(f)
+            print(fpath, fname)
 
             head = os.path.join(self._head_dir, f)
             base = os.path.join(self._base_dir, f)
             diff = os.path.join(self._head_dir, fpath, "diff-" + fname)
 
             # if addition or deletion, just skip
-            if not os.path.isfile(head) or not os.path.isfile(head):
+            if not os.path.isfile(head) or not os.path.isfile(base):
                 continue
 
-            fpath, fname = os.path.split(f)            
-
+            print("subbing", base, head)
             try:
-                diff_txt = subprocess.check_output(
-                    html_diff_template.format(file1=base, 
-                                              file2=head).split(), 
+#                diff_txt = subprocess.check_output(['htmldiff', base, head],
+#                    shell=(os.name == 'nt'))
+#                print(diff_txt)
+                diff_txt = subprocess.check_output(['lxmldiff', base, head, diff],
                     shell=(os.name == 'nt'))
             except OSError:
                 msg = "Error, htmldiff not installed on the server."
                 warn(msg, RuntimeWarning)
+                print(msg)
                 self._updater['description'] = msg
                 return 
 
-            with open(diff, 'w') as f:
-                f.write(diff_txt)
+            #with open(diff, 'w') as f:
+            #    f.write(diff_txt)
+            print("wrote file")
+        print("diffing complete, you science oven.")
 
     def _dump_state(self):
         with open('swc_state.json', 'w') as outfile:
             json.dumps({'base': self._base_dir, 
                         'head': self._head_dir, 
-                        'diff': self._diff_dir,
                         'files': self._files},
                        outfile, indent=4, separators=(',', ': '))
 
@@ -175,12 +183,13 @@ class PolyphemusPlugin(Plugin):
         self._files = [os.path.join(*f.filename.split("/")) 
                        for f in pr.iter_files()]
 
-        self._base_dir = os.path.join(self._home_dir, 
-                                      str(pr.number), "base")
-        self._head_dir = os.path.join(self._home_dir, 
-                                      str(pr.number), "head")
-        self._diff_dir = os.path.join(self._home_dir, 
-                                      str(pr.number), "diff")
+        stat_dir = rc.flask_kwargs['static_folder']
+        orp_dir = "{0}-{1}-{2}".format(rc.github_owner, rc.github_repo, pr.number)
+        stat_orp_dir = os.path.join(stat_dir, orp_dir)
+        self._base_dir = os.path.join(stat_orp_dir, "base")
+        self._head_dir = os.path.join(stat_orp_dir, "head")
+        if os.path.exists(stat_orp_dir):
+            shutil.rmtree(stat_orp_dir)
 
         self._build_head_html(pr.base, pr.head)
         self._build_base_html(pr.base)
