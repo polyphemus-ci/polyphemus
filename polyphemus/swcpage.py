@@ -38,7 +38,21 @@ class PolyphemusPlugin(Plugin):
     def response(self, rc, ghowner, ghrepo, pr, page):
         resp = ""
         event = None
+
+        stat_path = rc.flask_kwargs['static_url_path']  # must start with '/'
+        server_url = rc.server_url
+        url_prefix = server_url[:-1] + stat_path if server_url.endswith('/') else \
+                     server_url + stat_path
+        orp_path = "{0}-{1}-{2}/".format(rc.github_owner, rc.github_repo, pr.number)
+        url_prefix = url_prefix[:-1] + orp_path if url_prefix.endswith('/') else \
+                     url_prefix + orp_path
+        ppath, pname = os.path.split(page)
+        base_url = url_prefix + "base/_site/" + page
+        head_url = url_prefix + "head/_site/" + page
+        diff_url = url_prefix + "head/_site/" + ppath + '/diff-' + pname
+
         resp = render_template("swcpage.html", rc=rc, request=request, 
-                ghowner=ghowner, ghrepo=ghrepo, pr=pr, page=page)
+                ghowner=ghowner, ghrepo=ghrepo, pr=pr, page=page, base_url=base_url, 
+                head_url=head_url, diff_url=diff_url)
         #resp = "No polyphemus dashboard found."
         return resp, event

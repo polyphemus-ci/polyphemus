@@ -140,12 +140,9 @@ class PolyphemusPlugin(Plugin):
             status='pending', 
             description="Creating head and base website diffs.")
 
-        print(self._files)
         for f in self._files:
             f = os.path.join("_site", f)
-            print(f)
             fpath, fname = os.path.split(f)
-            print(fpath, fname)
 
             head = os.path.join(self._head_dir, f)
             base = os.path.join(self._base_dir, f)
@@ -173,8 +170,7 @@ class PolyphemusPlugin(Plugin):
 
             with open(diff, 'w') as f:
                 f.write(diffdoc)
-            print("wrote file")
-        print("diffing complete, you science oven.")
+            print("diff'd {0!r}".format(diff))
 
     def _dump_state(self):
         with open('swc_state.json', 'w') as outfile:
