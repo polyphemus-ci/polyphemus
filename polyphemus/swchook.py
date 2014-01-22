@@ -7,10 +7,15 @@ SWC Hook API
 """
 from __future__ import print_function
 import os
-import shutil
+import re
 import sys
+import cgi
+import shutil
 import subprocess
 from warnings import warn
+
+import lxml.html
+from lxml.html.diff import htmldiff, html_annotate
 
 try:
     import simplejson as json
@@ -37,9 +42,23 @@ fetch_template = """git fetch {branch}"""
 
 merge_template = """git merge {branch}/{commit}"""
 
-html_diff_template = """htmldiff {file1} {file2}"""
-
 build_html = """make clean; make cache; make check;"""
+
+head_re = re.compile('<\s*head\s*>', re.S | re.I)
+
+ins_del_stylesheet = '''
+ins { background-color: #aaffaa; text-decoration: none }
+del { background-color: #ff8888; text-decoration: line-through }
+'''
+
+def add_stylesheet(html, ss=ins_del_stylesheet):
+    match = head_re.search(html)
+    if match:
+        pos = match.end()
+    else:
+        pos = 0
+    return ('{0}<style type="text/css"><!--\n{1}\n-->'
+            '</style>{2}').format(html[:pos], ss, html[pos:]
 
 def clone_repo(url, dir):
     subprocess.check_call(
@@ -136,22 +155,24 @@ class PolyphemusPlugin(Plugin):
             if not os.path.isfile(head) or not os.path.isfile(base):
                 continue
 
-            print("subbing", base, head)
-            try:
-#                diff_txt = subprocess.check_output(['htmldiff', base, head],
-#                    shell=(os.name == 'nt'))
-#                print(diff_txt)
-                diff_txt = subprocess.check_output(['lxmldiff', base, head, diff],
-                    shell=(os.name == 'nt'))
-            except OSError:
-                msg = "Error, htmldiff not installed on the server."
-                warn(msg, RuntimeWarning)
-                print(msg)
-                self._updater['description'] = msg
-                return 
+            with open(base, 'r') as f:
+                doc1 = lxml.html.parse(f)
+ 
+            with open(head, 'r') as f:
+                doc2 = lxml.html.parse(f)
+ 
+            doc1body = doc1.find('body')
+            doc2body = doc2.find('body')
 
-            #with open(diff, 'w') as f:
-            #    f.write(diff_txt)
+            bodydiff = htmldiff(lxml.html.tostring(doc1body).decode(),
+                                lxml.html.tostring(doc2body).decode())
+            doc2head = doc2.find('head')
+            doc2head = lxml.html.tostring(doc2head).decode()
+            doc2head = add_stylesheet(doc2head)
+            diffdoc = doc2head + bodydiff
+
+            with open(diff, 'w') as f:
+                f.write(diffdoc)
             print("wrote file")
         print("diffing complete, you science oven.")
 
