@@ -38,8 +38,9 @@ class PolyphemusPlugin(Plugin):
     def response(self, rc, ghowner, ghrepo, pr):
         resp = ""
         event = None
+        orp = (ghowner, ghrepo, pr)
         cache = PersistentCache(cachefile=rc.swc_cache)
-        pages = cache[ghowner, ghrepo, pr]['files']
+        pages = cache[ghowner, ghrepo, pr]['files'] if orp in cache else []
         pages.sort()
         resp = render_template("swcpages.html", rc=rc, request=request, 
                 ghowner=ghowner, ghrepo=ghrepo, pr=pr, pages=pages)
