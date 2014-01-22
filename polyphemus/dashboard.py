@@ -1,6 +1,8 @@
-"""This provides a basic issue status dashboard and a way to manually re-launch jobs.
+"""This provides a basic issue status dashboard and a way to manually re-launch
+jobs.
 
-This module is available as an polyphemus plugin by the name `polyphemus.dashboard`.
+This module is available as an polyphemus plugin by the name
+`polyphemus.dashboard`.
 
 BaTLab Dashboard API
 ====================
@@ -31,8 +33,6 @@ from .githubbase import get_pull_request_status, ensure_logged_in
 
 class PolyphemusPlugin(Plugin):
     """This class routes the dashboard."""
-
-    requires = ('polyphemus.batlabrun',)
 
     route = '/dashboard'
 

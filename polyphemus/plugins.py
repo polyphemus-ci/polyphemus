@@ -414,7 +414,7 @@ class Plugins(object):
 
     def build_app(self):
         """Creates a default flask application."""
-        app = Flask(self.rc.appname)
+        app = Flask(self.rc.appname, **self.rc.flask_kwargs)
         for plugin in self.plugins:
             if plugin.route is None:
                 continue
@@ -510,8 +510,8 @@ def wrap_response(plugins, plugin):
 
     """
     @wraps(plugin.response)
-    def response():
-        resp, event = plugin.response(plugins.rc)
+    def response(*args, **kwargs):
+        resp, event = plugin.response(plugins.rc, *args, **kwargs)
         if event is not None:
             plugins.rc.event = event
             plugins.execute()
