@@ -1,9 +1,9 @@
-"""The basic functionality for BaTLab.
+"""The basic functionality for SWC website plugins
 
-This module is available as an polyphemus plugin by the name `polyphemus.batlabbase`.
+This module is available as an polyphemus plugin by the name `polyphemus.swcbase`.
 
-Basic BaTLaB API
-=================
+Basic SWC API
+=============
 """
 from __future__ import print_function
 import os

@@ -1,4 +1,4 @@
-"""The plug in to run on batlab.
+"""The plug in to check SWC website changes.
 
 This module is available as an polyphemus plugin by the name ``polyphemus.swchook``.
 
