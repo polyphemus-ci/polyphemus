@@ -58,7 +58,7 @@ def add_stylesheet(html, ss=ins_del_stylesheet):
     else:
         pos = 0
     return ('{0}<style type="text/css"><!--\n{1}\n-->'
-            '</style>{2}').format(html[:pos], ss, html[pos:]
+            '</style>{2}').format(html[:pos], ss, html[pos:])
 
 def clone_repo(url, dir):
     subprocess.check_call(
