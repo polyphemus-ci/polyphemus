@@ -51,6 +51,7 @@ class PolyphemusPlugin(Plugin):
         debug_filename='debug.txt',
         verbose=False,
         version=False,
+        only_setup=False,
         bash_completion=True,
         host='0.0.0.0',
         port=80,
@@ -66,6 +67,7 @@ class PolyphemusPlugin(Plugin):
         'debug_filename': 'the path to the debug file', 
         'verbose': "Print more output.",
         'version': "Print version information.",
+        'only_setup': "Only runs the setup phase of all plugins",
         'bash_completion': ("Flag for enabling / disabling BASH completion. "
                             "This is only relevant when using argcomplete."),
         'host': ("Which urls to host to, ie '0.0.0.0' for everyone or "
@@ -91,6 +93,8 @@ class PolyphemusPlugin(Plugin):
                             help=self.rcdocs["verbose"])
         parser.add_argument('--version', action='store_true', dest='version',
                             help=self.rcdocs["version"])
+        parser.add_argument('--only-setup', action='store_true', dest='only_setup',
+                            help=self.rcdocs["only_setup"])
         parser.add_argument('--host', help=self.rcdocs['host'])
         parser.add_argument('--port', help=self.rcdocs['port'])
         parser.add_argument('--appname', help=self.rcdocs['appname'])
