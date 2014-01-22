@@ -25,6 +25,17 @@ Polyphemus impelements the following modules and sub-packages,
     batlabrun
     batlabstat
 
+**Software Carpentry Plugins:**
+
+.. toctree::
+    :maxdepth: 1
+
+    swcbase
+    swchook
+    swcpage
+    swcpages
+
+
 **Helpers:**
 
 .. toctree::

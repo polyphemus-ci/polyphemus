@@ -1,9 +1,11 @@
-"""This provides a basic page comparision dashboard.
+"""This provides simple file listing for pages which are different in the 
+original and pull request.  The file listings are links which take the user
+to the 3-way diff page as rendered by the `polyphemus.swcpage` plugin.
 
-This module is available as an polyphemus plugin by the name `polyphemus.swcpage`.
+This module is available as an polyphemus plugin by the name `polyphemus.swcpages`.
 
-Software Carpentry Dashboard API
-================================
+Software Carpentry File Listing API
+===================================
 """
 from __future__ import print_function
 import os

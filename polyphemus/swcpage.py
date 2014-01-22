@@ -1,9 +1,11 @@
-"""This provides a basic page comparision dashboard.
+"""This provides a 3-way diff comparison for rendered HTML pages. The URLs
+routed by this extension show the original version of the page, the pull requested 
+version of the page, and a visual diff of the two.
 
 This module is available as an polyphemus plugin by the name `polyphemus.swcpage`.
 
-Software Carpentry Dashboard API
-================================
+Software Carpentry 3-Way Page Diff API
+======================================
 """
 from __future__ import print_function
 import os
