@@ -43,9 +43,9 @@ class PolyphemusPlugin(Plugin):
         server_url = rc.server_url
         url_prefix = server_url[:-1] + stat_path if server_url.endswith('/') else \
                      server_url + stat_path
-        orp_path = "{0}-{1}-{2}/".format(rc.github_owner, rc.github_repo, pr.number)
-        url_prefix = url_prefix[:-1] + orp_path if url_prefix.endswith('/') else \
-                     url_prefix + orp_path
+        orp_path = "{0}-{1}-{2}/".format(ghowner, ghrepo, pr)
+        url_prefix = url_prefix + orp_path if url_prefix.endswith('/') else \
+                     url_prefix + '/' + orp_path
         ppath, pname = os.path.split(page)
         base_url = url_prefix + "base/_site/" + page
         head_url = url_prefix + "head/_site/" + page
