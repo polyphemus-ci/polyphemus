@@ -211,6 +211,6 @@ class PolyphemusPlugin(Plugin):
                       'head': self._head_dir,
                       'files': self._files}
 
-        self._updater.update(status='success', description="comparison available."
+        self._updater.update(status='success', description="comparison available.", 
                              target_url=os.path.join(rc.server_url, rc.github_owner, 
                                                      rc.github_repo, str(pr.number)))
