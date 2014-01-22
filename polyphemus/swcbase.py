@@ -26,14 +26,13 @@ class PolyphemusPlugin(Plugin):
 
     requires = ('polyphemus.base',)
 
-    defaultrc = RunControl()
+    defaultrc = RunControl(swc_cache='swc.cache')
 
-    rcdocs = {}
+    rcdocs = {'swc_cache': 'Filename for software carpentry cache.'}
 
     def update_argparser(self, parser):
-        #parser.add_argument('--batlab-user', dest='batlab_user',
-        #                    help=self.rcdocs["batlab_user"])
-        pass
+        parser.add_argument('--swc-cache', dest='swc_cache',
+                            help=self.rcdocs["swc_cache"])
 
     def setup(self, rc):
         pass

@@ -172,13 +172,6 @@ class PolyphemusPlugin(Plugin):
                 f.write(diffdoc)
             print("diff'd {0!r}".format(diff))
 
-    def _dump_state(self):
-        with open('swc_state.json', 'w') as outfile:
-            json.dumps({'base': self._base_dir, 
-                        'head': self._head_dir, 
-                        'files': self._files},
-                       outfile, indent=4, separators=(',', ': '))
-
     @runfor('swc-hook', 'github-pr-new', 'github-pr-sync')                    
     def execute(self, rc):
         event_name = rc.event.name
@@ -200,8 +193,9 @@ class PolyphemusPlugin(Plugin):
         self._files = [os.path.join(*f.filename.split("/")) 
                        for f in pr.iter_files()]
 
+        orp = (rc.github_owner, rc.github_repo, pr.number)
         stat_dir = rc.flask_kwargs['static_folder']
-        orp_dir = "{0}-{1}-{2}".format(rc.github_owner, rc.github_repo, pr.number)
+        orp_dir = "{0}-{1}-{2}".format(*orp)
         stat_orp_dir = os.path.join(stat_dir, orp_dir)
         self._base_dir = os.path.join(stat_orp_dir, "base")
         self._head_dir = os.path.join(stat_orp_dir, "head")
@@ -211,4 +205,8 @@ class PolyphemusPlugin(Plugin):
         self._build_head_html(pr.base, pr.head)
         self._build_base_html(pr.base)
         self._generate_diffs()
-        self._dump_state()
+
+        cache = PersistentCache(cachefile=rc.swc_cache)
+        cache[orp] = {'base': self._base_dir,
+                      'head': self._head_dir,
+                      'files': self._files}
