@@ -44,5 +44,4 @@ class PolyphemusPlugin(Plugin):
         pages.sort()
         resp = render_template("swcpages.html", rc=rc, request=request, 
                 ghowner=ghowner, ghrepo=ghrepo, pr=pr, pages=pages)
-        #resp = "No polyphemus dashboard found."
         return resp, event
