@@ -6,6 +6,7 @@ SWC Hook API
 ============
 """
 from __future__ import print_function
+import io
 import os
 import re
 import sys
@@ -48,7 +49,7 @@ build_html = """make clean; make cache; make check;"""
 
 head_re = re.compile('<\s*head\s*>', re.S | re.I)
 
-ins_del_stylesheet = '''
+ins_del_stylesheet = u'''
 ins { background-color: #aaffaa; text-decoration: none }
 del { background-color: #ff8888; text-decoration: line-through }
 '''
@@ -163,15 +164,15 @@ class PolyphemusPlugin(Plugin):
             doc1body = doc1.find('body')
             doc2body = doc2.find('body')
 
-            bodydiff = htmldiff(lxml.html.tostring(doc1body).decode(),
-                                lxml.html.tostring(doc2body).decode())
+            bodydiff = htmldiff(lxml.html.tostring(doc1body, encoding='utf-8').decode('utf-8'),
+                                lxml.html.tostring(doc2body, encoding='utf-8').decode('utf-8'))
             doc2head = doc2.find('head')
             add_stylesheet(doc2head)
-            diffdoc = '<html>\n{0}\n<body>\n{1}\n</body>\n</html>'
-            diffdoc = diffdoc.format(lxml.html.tostring(doc2head).decode(), bodydiff)
+            diffdoc = u'<html>\n{0}\n<body>\n{1}\n</body>\n</html>'
+            diffdoc = diffdoc.format(lxml.html.tostring(doc2head, encoding='utf-8').decode('utf-8'), bodydiff)
 
-            with open(diff, 'w') as f:
-                f.write(diffdoc)
+            with io.open(diff, 'wb') as f:
+                f.write(diffdoc.encode('utf-8'))
             print("diff'd {0!r}".format(diff))
 
     @runfor('swc-hook', 'github-pr-new', 'github-pr-sync')                    
