@@ -8,18 +8,18 @@ Basic SWC API
 from __future__ import print_function
 import os
 import sys
-from tempfile import NamedTemporaryFile
-import subprocess
 from warnings import warn
-from getpass import getuser, getpass
 
 from .utils import RunControl, NotSpecified, writenewonly, \
     DEFAULT_RC_FILE, DEFAULT_PLUGINS, nyansep, indent, check_cmd
 from .plugins import Plugin
-from .base import ssh_pub_key
 
 if sys.version_info[0] >= 3:
     basestring = str
+
+HTML_EXTS = set(['.html', '.htm'])
+
+KNOWN_EXTS = set(['.html', '.htm', '.ipynb'])
 
 class PolyphemusPlugin(Plugin):
     """This class provides basic Software Carpentry functionality."""

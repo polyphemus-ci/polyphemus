@@ -29,6 +29,7 @@ from .utils import RunControl, NotSpecified, PersistentCache
 from .plugins import Plugin
 from .event import Event, runfor
 from .githubbase import set_pull_request_status
+from .swcbase import HTML_EXTS, KNOWN_EXTS
 
 if sys.version_info[0] >= 3:
     basestring = str
@@ -46,10 +47,6 @@ merge_template = """git merge {branch}/{commit}"""
 build_html = """make clean; make cache; make check;"""
 
 head_re = re.compile('<\s*head\s*>', re.S | re.I)
-
-HTML_EXTS = set(['.html', '.htm'])
-
-KNOWN_EXTS = set(['.html', '.htm', '.ipynb'])
 
 ins_del_stylesheet = '''
 ins { background-color: #aaffaa; text-decoration: none }
