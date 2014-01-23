@@ -86,3 +86,24 @@ Rackspace Install
     # Start apache!
     service apache2 start
 
+
+=======================
+Server Restart
+=======================
+Say you have just pulled in new commits from the repo.  The following 
+is how you restart the server.
+
+
+.. code-block:: bash
+
+    # Pull & Install Polyphemus Updates
+    cd polyphemus
+    git pull 
+    python setup.py install
+
+    # Restart apache
+    service apache2 restart
+
+    # Restart development server
+    # kill running server though ^C, ^D, or kill
+    polyphemus --debug --rc /path/to/rc/file
