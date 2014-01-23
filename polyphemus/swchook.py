@@ -15,6 +15,7 @@ import subprocess
 from warnings import warn
 
 import lxml.html
+import lxml.etree
 from lxml.html.diff import htmldiff, html_annotate
 
 try:
@@ -51,14 +52,11 @@ ins { background-color: #aaffaa; text-decoration: none }
 del { background-color: #ff8888; text-decoration: line-through }
 '''
 
-def add_stylesheet(html, ss=ins_del_stylesheet):
-    match = head_re.search(html)
-    if match:
-        pos = match.end()
-    else:
-        pos = 0
-    return ('{0}<style type="text/css"><!--\n{1}\n-->'
-            '</style>{2}').format(html[:pos], ss, html[pos:])
+def add_stylesheet(elem, ss=ins_del_stylesheet):
+    """Adds a stylesheet to the end of an element."""
+    s = lxml.etree.Element('style', type="text/css")
+    s.text = ss
+    elem.append(s)
 
 def clone_repo(url, dir):
     subprocess.check_call(
@@ -164,9 +162,9 @@ class PolyphemusPlugin(Plugin):
             bodydiff = htmldiff(lxml.html.tostring(doc1body).decode(),
                                 lxml.html.tostring(doc2body).decode())
             doc2head = doc2.find('head')
-            doc2head = lxml.html.tostring(doc2head).decode()
-            doc2head = add_stylesheet(doc2head)
-            diffdoc = doc2head + bodydiff
+            add_stylesheet(doc2head)
+            diffdoc = '<html>\n{0}\n<body>\n{1}\n</body>\n</html>'
+            diffdoc = diffdoc.format(lxml.html.tostring(doc2head).decode(), bodydiff)
 
             with open(diff, 'w') as f:
                 f.write(diffdoc)
