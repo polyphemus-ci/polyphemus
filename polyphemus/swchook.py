@@ -47,6 +47,8 @@ build_html = """make clean; make cache; make check;"""
 
 head_re = re.compile('<\s*head\s*>', re.S | re.I)
 
+KNOWN_EXTS = set(['.html', '.htm', '.ipynb'])
+
 ins_del_stylesheet = '''
 ins { background-color: #aaffaa; text-decoration: none }
 del { background-color: #ff8888; text-decoration: line-through }
@@ -190,6 +192,7 @@ class PolyphemusPlugin(Plugin):
         
         self._files = [os.path.join(*f.filename.split("/")) 
                        for f in pr.iter_files()]
+        self._files = [f for f in self._files if os.path.splitext(f)[1] in KNOWN_EXTS]
 
         orp = (rc.github_owner, rc.github_repo, pr.number)
         stat_dir = rc.flask_kwargs['static_folder']
