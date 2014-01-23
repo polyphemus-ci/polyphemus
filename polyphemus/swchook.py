@@ -47,6 +47,8 @@ build_html = """make clean; make cache; make check;"""
 
 head_re = re.compile('<\s*head\s*>', re.S | re.I)
 
+HTML_EXTS = set(['.html', '.htm'])
+
 KNOWN_EXTS = set(['.html', '.htm', '.ipynb'])
 
 ins_del_stylesheet = '''
@@ -141,6 +143,9 @@ class PolyphemusPlugin(Plugin):
             description="Creating head and base website diffs.")
 
         for f in self._files:
+            froot, fext = os.path.splitext(f)
+            if fext not in HTML_EXTS:
+                f = froot + '.html'
             f = os.path.join("_site", f)
             fpath, fname = os.path.split(f)
 
