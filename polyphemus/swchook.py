@@ -6,6 +6,7 @@ SWC Hook API
 ============
 """
 from __future__ import print_function
+import io
 import os
 import re
 import sys
@@ -15,6 +16,7 @@ import subprocess
 from warnings import warn
 
 import lxml.html
+import lxml.etree
 from lxml.html.diff import htmldiff, html_annotate
 
 try:
@@ -28,6 +30,7 @@ from .utils import RunControl, NotSpecified, PersistentCache
 from .plugins import Plugin
 from .event import Event, runfor
 from .githubbase import set_pull_request_status
+from .swcbase import HTML_EXTS, KNOWN_EXTS
 
 if sys.version_info[0] >= 3:
     basestring = str
@@ -46,19 +49,16 @@ build_html = """make clean; make cache; make check;"""
 
 head_re = re.compile('<\s*head\s*>', re.S | re.I)
 
-ins_del_stylesheet = '''
+ins_del_stylesheet = u'''
 ins { background-color: #aaffaa; text-decoration: none }
 del { background-color: #ff8888; text-decoration: line-through }
 '''
 
-def add_stylesheet(html, ss=ins_del_stylesheet):
-    match = head_re.search(html)
-    if match:
-        pos = match.end()
-    else:
-        pos = 0
-    return ('{0}<style type="text/css"><!--\n{1}\n-->'
-            '</style>{2}').format(html[:pos], ss, html[pos:])
+def add_stylesheet(elem, ss=ins_del_stylesheet):
+    """Adds a stylesheet to the end of an element."""
+    s = lxml.etree.Element('style', type="text/css")
+    s.text = ss
+    elem.append(s)
 
 def clone_repo(url, dir):
     subprocess.check_call(
@@ -141,6 +141,9 @@ class PolyphemusPlugin(Plugin):
             description="Creating head and base website diffs.")
 
         for f in self._files:
+            froot, fext = os.path.splitext(f)
+            if fext not in HTML_EXTS:
+                f = froot + '.html'
             f = os.path.join("_site", f)
             fpath, fname = os.path.split(f)
 
@@ -161,15 +164,15 @@ class PolyphemusPlugin(Plugin):
             doc1body = doc1.find('body')
             doc2body = doc2.find('body')
 
-            bodydiff = htmldiff(lxml.html.tostring(doc1body).decode(),
-                                lxml.html.tostring(doc2body).decode())
+            bodydiff = htmldiff(lxml.html.tostring(doc1body, encoding='utf-8').decode('utf-8'),
+                                lxml.html.tostring(doc2body, encoding='utf-8').decode('utf-8'))
             doc2head = doc2.find('head')
-            doc2head = lxml.html.tostring(doc2head).decode()
-            doc2head = add_stylesheet(doc2head)
-            diffdoc = doc2head + bodydiff
+            add_stylesheet(doc2head)
+            diffdoc = u'<html>\n{0}\n<body>\n{1}\n</body>\n</html>'
+            diffdoc = diffdoc.format(lxml.html.tostring(doc2head, encoding='utf-8').decode('utf-8'), bodydiff)
 
-            with open(diff, 'w') as f:
-                f.write(diffdoc)
+            with io.open(diff, 'wb') as f:
+                f.write(diffdoc.encode('utf-8'))
             print("diff'd {0!r}".format(diff))
 
     @runfor('swc-hook', 'github-pr-new', 'github-pr-sync')                    
@@ -192,6 +195,7 @@ class PolyphemusPlugin(Plugin):
         
         self._files = [os.path.join(*f.filename.split("/")) 
                        for f in pr.iter_files()]
+        self._files = [f for f in self._files if os.path.splitext(f)[1] in KNOWN_EXTS]
 
         orp = (rc.github_owner, rc.github_repo, pr.number)
         stat_dir = rc.flask_kwargs['static_folder']

@@ -73,8 +73,8 @@ ol ol{
   <h1 style="display:inline-block;">Pages changed in <a href="https://github.com/{{ ghowner }}/{{ ghrepo }}/pull/{{ pr }}">{{ ghowner }}/{{ ghrepo }}#{{ pr }}</a>:</h1>
 
   <ol class="rectangle-list">
-  {% for page in pages %}
-    <li><a href="{{ rc.server_url }}{% if rc.port != 80 %}:{{ rc.port }}{% endif %}/{{ ghowner }}/{{ ghrepo }}/{{ pr }}/{{ page }}">{{ page }}</a></li>
+  {% for page_name, page_path in pages %}
+    <li><a href="{{ rc.server_url }}{% if rc.port != 80 %}:{{ rc.port }}{% endif %}/{{ ghowner }}/{{ ghrepo }}/{{ pr }}/{{ page_path }}">{{ page_name }}</a></li>
   {% endfor %}
   </ol>
 

@@ -27,6 +27,7 @@ from flask import request, render_template
 from .utils import RunControl, NotSpecified, PersistentCache
 from .plugins import Plugin
 from .event import Event, runfor
+from .swcbase import HTML_EXTS, KNOWN_EXTS
 
 class PolyphemusPlugin(Plugin):
     """This class routes the swcpage dashboard."""
@@ -42,7 +43,15 @@ class PolyphemusPlugin(Plugin):
         event = None
         orp = (ghowner, ghrepo, pr)
         cache = PersistentCache(cachefile=rc.swc_cache)
-        pages = cache[ghowner, ghrepo, pr]['files'] if orp in cache else []
+        cached_pages = cache[ghowner, ghrepo, pr]['files'] if orp in cache else []
+        pages = []
+        for page in cached_pages:
+            proot, pext = os.path.splitext(page)
+            if pext in HTML_EXTS:
+                p = (page, page)
+            else:
+                p = (page, proot + '.html')
+            pages.append(p)
         pages.sort()
         resp = render_template("swcpages.html", rc=rc, request=request, 
                 ghowner=ghowner, ghrepo=ghrepo, pr=pr, pages=pages)
