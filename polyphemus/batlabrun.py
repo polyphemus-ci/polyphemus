@@ -148,8 +148,10 @@ class PolyphemusPlugin(Plugin):
     def execute(self, rc):
         event_name = rc.event.name
         pr = rc.event.data  # pull request object
-        job = pr.repository + (pr.number,)  # job key (owner, repo, number) 
-        jobdir = "${HOME}/" + "--".join(pr.repository + (str(pr.number),))
+        #job = pr.repository + (pr.number,)  # job key (owner, repo, number) 
+        job = pr.base.repo + (pr.number,)  # job key (owner, repo, number) 
+        #jobdir = "${HOME}/" + "--".join(pr.repository + (str(pr.number),))
+        jobdir = "${HOME}/" + "--".join(pr.base.repo + (str(pr.number),))
         jobs = PersistentCache(cachefile=rc.batlab_jobs_cache)
         event = rc.event = Event(name='batlab-status', data={'status': 'error', 
                                  'number': pr.number, 'description': ''})
