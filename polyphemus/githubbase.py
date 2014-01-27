@@ -131,7 +131,8 @@ def set_pull_request_status(pr, state, target_url="", description='', user=None,
         r = gh.repository(*pr[:2])
         pr = gh.pull_request(*pr)
     else:
-        r = gh.repository(*pr.repository)
+        #r = gh.repository(*pr.repository)  Broken on github3.py v0.8+
+        r = gh.repository(*pr.base.repo)
     status = r.create_status(pr.head.sha, state=state, target_url=target_url, 
                              description=description)    
 
