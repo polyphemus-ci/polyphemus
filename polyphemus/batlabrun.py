@@ -68,12 +68,15 @@ def _ensure_task_script(task, run_spec_lines, run_spec_path, jobdir, client):
         task_file = run_spec_lines[i].split('=', 1)[1].strip()
     else:
         task_file = '{0}.sh'.format(task)
-        stdin, stdout, sterr = client.exec_command("echo '#!/bin/bash' > {0}/{1}".format(jobdir, task_file))
+        cmd = "echo '#!/bin/bash' > {0}/{1}".format(jobdir, task_file)
+        stdin, stdout, sterr = client.exec_command(cmd)
         stdout.channel.recv_exit_status()
-        stdin, stdout, sterr = client.exec_command('chmod 755 {0}/{1}'.format(jobdir, task_file))
+        cmd = 'chmod 755 {0}/{1}'.format(jobdir, task_file)
+        stdin, stdout, sterr = client.exec_command(cmd)
         stdout.channel.recv_exit_status()
-        stdin, stdout, sterr = client.exec_command('echo "{0} = {1}" >> {2}/{3}'.format(task, task_file, 
-                                                          jobdir, run_spec_path))
+        cmd = 'echo "{0} = {1}" >> {2}/{3}'.format(task, task_file, 
+                                                         jobdir, run_spec_path)
+        stdin, stdout, sterr = client.exec_command(cmd)
         stdout.channel.recv_exit_status()
     return task_file
 
@@ -82,12 +85,14 @@ def _ensure_runspec_option(option, run_spec_lines, run_spec_path, jobdir, client
     if i >= 0:
         old_val = run_spec_lines[i].split('=', 1)[1].strip()
         if old_val != value:
-            stdin, stdout, sterr = client.exec_command("sed -i -e 's/{0}/{1}={2}/g' {3}/{4}".format(run_spec_lines[i], 
-                                                          option, value, jobdir, run_spec_path))
+            cmd = "sed -i -e 's/{0}/{1}={2}/g' {3}/{4}".format(
+                            run_spec_lines[i], option, value, jobdir, run_spec_path)
+            stdin, stdout, sterr = client.exec_command(cmd)
             stdout.channel.recv_exit_status()
     else:
-        stdin, stdout, sterr = client.exec_command('echo "{0} = {1}" >> {2}/{3}'.format(option, value, 
-                                                          jobdir, run_spec_path))
+        cmd = 'echo "{0} = {1}" >> {2}/{3}'.format(option, value,
+                                                   jobdir, run_spec_path)
+        stdin, stdout, sterr = client.exec_command(cmd)
         stdout.channel.recv_exit_status()
 
 class PolyphemusPlugin(Plugin):
@@ -177,8 +182,9 @@ class PolyphemusPlugin(Plugin):
         # if sync event, kill an existing job.
         if event_name == 'github-pr-sync' and job in jobs:
             try:
-                stdin, stdout, sterr = client.exec_command(rc.batlab_kill_cmd + ' ' + jobs[job]['gid'])
-                stdout.channel.recv_exit_status()
+                cmd = rc.batlab_kill_cmd + ' ' + jobs[job]['gid']
+                sin, out, err = client.exec_command(cmd)
+                out.channel.recv_exit_status()
             except paramiko.SSHException:
                 event.data['description'] = "Error killing existing BaTLab job."
                 return
@@ -206,14 +212,15 @@ class PolyphemusPlugin(Plugin):
             except paramiko.SSHException:
                 event.data['description'] = "Error unzipping BaTLab scripts."
                 return            
-
-            stdin, stdout, sterr = client.exec_command('ls {0}'.format(jobdir))
+            cmd = 'ls {0}'.format(jobdir)
+            stdin, stdout, sterr = client.exec_command(cmd)
             stdout.channel.recv_exit_status()
  
             ls = stdout.read().split()
             if len(ls) == 1:
                 try:
-                    stdin, stdout, sterr = client.exec_command('mv {0}/{1}/* {0}'.format(jobdir, ls[0]))
+                    cmd = 'mv {0}/{1}/* {0}'.format(jobdir, ls[0])
+                    stdin, stdout, sterr = client.exec_command(cmd)
                     stdout.channel.recv_exit_status()
                 except paramiko.SSHException:
                     event.data['description'] = "Error moving BaTLab scripts."
@@ -235,8 +242,8 @@ class PolyphemusPlugin(Plugin):
         
         # append callbacks to run spec
         try:
-            _, x, _ = client.exec_command('cat {0}/{1}'.format(jobdir, 
-                                                               rc.batlab_run_spec))
+            cmd = 'cat {0}/{1}'.format(jobdir, rc.batlab_run_spec)
+            _, x, _ = client.exec_command(cmd)
             x.channel.recv_exit_status()
             append = ', <a href="{0}/dashboard">{1}</a>'.format(
                 rc.server_url, 
@@ -251,17 +258,18 @@ class PolyphemusPlugin(Plugin):
                                            rc.batlab_run_spec, jobdir, client)
             pre_curl = pre_curl_template.format(number=pr.number, port=rc.port, 
                                                 server_url=rc.server_url)
-            stdin, stdout, sterr = client.exec_command('echo "{0}" >> {1}/{2}'.format(pre_curl, 
-                                                               jobdir, pre_file))
-            stdout.channel.recv_exit_status()
+            cmd = 'echo "{0}" >> {1}/{2}'.format(pre_curl,jobdir, pre_file)
+            sin, out,err = client.exec_command(cmd)
+            out.channel.recv_exit_status()
             post_file = _ensure_task_script('post_all', run_spec_lines, 
                                             rc.batlab_run_spec, jobdir, client)
             _ensure_runspec_option('always_run_post_all', run_spec_lines, 
                                    rc.batlab_run_spec, jobdir, client, 'true')
             post_curl = post_curl_template.format(number=pr.number, port=rc.port, 
                                                   server_url=rc.server_url)
-            stdin, stdout, sterr = client.exec_command('echo "{0}" >> {1}/{2}'.format(post_curl, jobdir, 
-                                                               post_file))
+
+            cmd = 'echo "{0}" >> {1}/{2}'.format(post_curl, jobdir,post_file)
+            stdin, stdout, sterr = client.exec_command(cmd)
             stdout.channel.recv_exit_status()
         except paramiko.SSHException:
             event.data['description'] = "Error appending BaTLab callbacks."
@@ -288,7 +296,8 @@ class PolyphemusPlugin(Plugin):
         else:
             cmd = "sed -i 's:{0}:jobdir.scp:' {1}/{2}"
         try:
-            stdin, stdout, sterr = client.exec_command(cmd.format(inputs, jobdir, rc.batlab_run_spec))
+            stdin, stdout, sterr = client.exec_command(cmd.format(inputs,
+                                                       jobdir, rc.batlab_run_spec))
             stdout.channel.recv_exit_status()
         except paramiko.SSHException:
             event.data['description'] = "Error adding jobdir.scp to inputs."
