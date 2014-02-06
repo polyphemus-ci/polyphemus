@@ -75,7 +75,7 @@ def _ensure_task_script(task, run_spec_lines, run_spec_path, jobdir, client):
         stdin, stdout, sterr = client.exec_command(cmd)
         stdout.channel.recv_exit_status()
         cmd = 'echo "{0} = {1}" >> {2}/{3}'.format(task, task_file, 
-                                                         jobdir, run_spec_path)
+                                                   jobdir, run_spec_path)
         stdin, stdout, sterr = client.exec_command(cmd)
         stdout.channel.recv_exit_status()
     return task_file
@@ -258,8 +258,8 @@ class PolyphemusPlugin(Plugin):
                                            rc.batlab_run_spec, jobdir, client)
             pre_curl = pre_curl_template.format(number=pr.number, port=rc.port, 
                                                 server_url=rc.server_url)
-            cmd = 'echo "{0}" >> {1}/{2}'.format(pre_curl,jobdir, pre_file)
-            sin, out,err = client.exec_command(cmd)
+            cmd = 'echo "{0}" >> {1}/{2}'.format(pre_curl, jobdir, pre_file)
+            sin, out, err = client.exec_command(cmd)
             out.channel.recv_exit_status()
             post_file = _ensure_task_script('post_all', run_spec_lines, 
                                             rc.batlab_run_spec, jobdir, client)
@@ -268,7 +268,7 @@ class PolyphemusPlugin(Plugin):
             post_curl = post_curl_template.format(number=pr.number, port=rc.port, 
                                                   server_url=rc.server_url)
 
-            cmd = 'echo "{0}" >> {1}/{2}'.format(post_curl, jobdir,post_file)
+            cmd = 'echo "{0}" >> {1}/{2}'.format(post_curl, jobdir, post_file)
             stdin, stdout, sterr = client.exec_command(cmd)
             stdout.channel.recv_exit_status()
         except paramiko.SSHException:
@@ -297,7 +297,8 @@ class PolyphemusPlugin(Plugin):
             cmd = "sed -i 's:{0}:jobdir.scp:' {1}/{2}"
         try:
             stdin, stdout, sterr = client.exec_command(cmd.format(inputs,
-                                                       jobdir, rc.batlab_run_spec))
+                                                                  jobdir, 
+                                                                  rc.batlab_run_spec))
             stdout.channel.recv_exit_status()
         except paramiko.SSHException:
             event.data['description'] = "Error adding jobdir.scp to inputs."
