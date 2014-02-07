@@ -34,7 +34,10 @@ curl --form status='{{\"status\":\"pending\",\"number\":{number},\"description\"
 """
 
 post_curl_template = r"""# polyphemus post_all callbacks
-if [ -z $_NMI_STEP_FAILED ]
+val0=\`grep \"return value 0\" ../../run.log | wc -l\`
+valAny=\`grep \"return value\" ../../run.log | wc -l\`
+
+if [ \$val0 == \$valAny ]
 then
     curl --form status='{{\"status\":\"success\",\"number\":{number},\"description\":\"build and test completed successfully\"}}' {server_url}:{port}/batlabstatus
 else

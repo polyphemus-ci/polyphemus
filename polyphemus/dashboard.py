@@ -61,7 +61,7 @@ class PolyphemusPlugin(Plugin):
     _bgcolors = {
         'success': 'rgba(149, 201, 126, 0.6)', 
         'pending': 'rgba(255, 153, 51, 0.6)', 
-        'failed': 'rgba(189, 44, 0, 0.6)', 
+        'failure': 'rgba(189, 44, 0, 0.6)', 
         'error': 'rgba(51, 51, 51, 0.6)',
         }
 
