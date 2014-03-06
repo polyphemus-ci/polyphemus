@@ -74,8 +74,8 @@ Rackspace Install
 
     # Setup polyphemus for a given run control file, 
     # kill these commands with ^C after they start
-    polyphemus --rc cyclusrc.py
-    polyphemus --rc cyclusrc.py --plugins polyphemus.apache2 --apache2-setup
+    polyphemus --only-setup --rc cyclusrc.py  
+    polyphemus --only-setup --plugins polyphemus.apache2 --apache2-setup --rc cyclusrc.py
     a2ensite cyclus-ci.fuelcycle.org
 
     # Verify permissions for apache
