@@ -10,8 +10,11 @@ polyphemus.base
     relevant when using argcomplete., *default:* True.
 :debug: run in debugging mode, *default:* False.
 :debug_filename: the path to the debug file, *default:* 'debug.txt'.
+:flask_kwargs: keyword argumnets submitted to Flask() constructor., *default:*
+    {'static_url_path': '/static'}.
 :host: Which urls to host to, ie '0.0.0.0' for everyone or 'localhost' for
     yourself, *default:* '0.0.0.0'.
+:only_setup: Only runs the setup phase of all plugins, *default:* False.
 :plugins: Plugins to include, *default:* ('polyphemus.base',
     'polyphemus.githubhook', 'polyphemus.batlabrun', 'polyphemus.batlabstat',
     'polyphemus.githubstat', 'polyphemus.dashboard').

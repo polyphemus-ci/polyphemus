@@ -31,6 +31,7 @@ Contents
     rcdocs
     previous/index
     faq
+    other
     authors
 
 ============
