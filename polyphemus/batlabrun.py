@@ -101,7 +101,7 @@ def _ensure_runspec_option(option, run_spec_lines, run_spec_path, jobdir, client
 def _ensure_yaml_option(option,yaml_lines,yaml_path, jobdir, client, value):
     i = -1
     for j,elem in enumerate(yaml_lines):
-        if elem.strip().startswith(s):
+        if elem.strip().startswith(option):
             i = j
             break
     if i >= 0:
@@ -258,15 +258,16 @@ class PolyphemusPlugin(Plugin):
         #NEED TO CHANGE HOW FETCH STUFF WORKS TO SUPPORT CONDA
         #new
         #assume there is a conda recipe with same name as git repo
+        head_repo = github3.repository(*pr.head.repo)
         try:
             cmd = 'cat {0}/{1}/meta.yaml'.format(jobdir, job[1])
             yaml_path = '{0}/meta.yaml'.format(job[1])
             _, x, _ = client.exec_command(cmd)
             x.channel.recv_exit_status()
             meta_lines = [l.strip() for l in x.readlines()]
-            _ensure_yaml_option("git_url",yaml_lines, yaml_path, jobdir, client,
+            _ensure_yaml_option("git_url",meta_lines, yaml_path, jobdir, client,
 				head_repo.clone_url)
-            _ensure_yaml_option("git_tag",yaml_lines, yaml_path, jobdir, client,
+            _ensure_yaml_option("git_tag",meta_lines, yaml_path, jobdir, client,
 				pr.head.ref)
 
         except paramiko.SSHException:
