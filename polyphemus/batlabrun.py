@@ -108,8 +108,12 @@ def _ensure_yaml_option(option,yaml_lines,yaml_path, jobdir, client, value):
         prefix  = yaml_lines[i].split(':', 1)[0] 
         old_val = yaml_lines[i].split(':', 1)[1].strip()
         if old_val != value:
-            cmd = "sed -i -e 's/{0}/{1}: {2}/g' {3}/{4}".format(
-                            yaml_lines[i], prefix, value, jobdir, yaml_path)
+
+            newFile = ''
+            yaml_lines[i] = prefix+': '+value+'\n'
+            for line in yaml_lines:
+                newFile+=line
+            cmd = "echo '"+newFile+"' > {0}/{1}".format(jobdir, yaml_path)
             stdin, stdout, sterr = client.exec_command(cmd)
             stdout.channel.recv_exit_status()
     else:
@@ -264,7 +268,7 @@ class PolyphemusPlugin(Plugin):
             yaml_path = '{0}/meta.yaml'.format(job[1])
             _, x, _ = client.exec_command(cmd)
             x.channel.recv_exit_status()
-            meta_lines = [l.strip() for l in x.readlines()]
+            meta_lines = x.readlines()
             _ensure_yaml_option("git_url",meta_lines, yaml_path, jobdir, client,
 				head_repo.clone_url)
             _ensure_yaml_option("git_tag",meta_lines, yaml_path, jobdir, client,
