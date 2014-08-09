@@ -137,6 +137,7 @@ class PolyphemusPlugin(Plugin):
         batlab_scripts_url=NotSpecified,
         batlab_fetch_file=NotSpecified,
         batlab_run_spec=NotSpecified,
+        batlab_build_type='custom',
         )
 
     rcdocs = {
@@ -155,6 +156,9 @@ class PolyphemusPlugin(Plugin):
         'batlab_run_spec': ("The top level *.run-spec file that is submitted to "
                             "BaTLab. This should be a relative path from "
                             "the base of the batlab_scripts_url dir."),
+        'batlab_build_type': ("Specifies method of building code. Currently "
+                              "supports 'custom' build scripts (default) "
+                              " and 'conda' package building"),
         }
 
     def update_argparser(self, parser):
@@ -170,6 +174,8 @@ class PolyphemusPlugin(Plugin):
                             help=self.rcdocs["batlab_fetch_file"])
         parser.add_argument('--batlab-run-spec', dest='batlab_run_spec',
                             help=self.rcdocs["batlab_run_spec"])
+        parser.add_argument('--batlab-build-type',dest='batlab_build_type',
+                            help=self.rcdocs["batlab_build_type"])
 
     def setup(self, rc):
         if rc.batlab_scripts_url is NotSpecified:
@@ -258,24 +264,32 @@ class PolyphemusPlugin(Plugin):
         else:
             raise ValueError("rc.batlab_scripts_url not understood.")
 
-        # Overwrite fetch file
-        #NEED TO CHANGE HOW FETCH STUFF WORKS TO SUPPORT CONDA
-        #new
-        #assume there is a conda recipe with same name as git repo
         head_repo = github3.repository(*pr.head.repo)
         try:
-            cmd = 'cat {0}/{1}/meta.yaml'.format(jobdir, job[1])
-            yaml_path = '{0}/meta.yaml'.format(job[1])
-            _, x, _ = client.exec_command(cmd)
-            x.channel.recv_exit_status()
-            meta_lines = x.readlines()
-            _ensure_yaml_option("git_url",meta_lines, yaml_path, jobdir, client,
-				head_repo.clone_url)
-            _ensure_yaml_option("git_tag",meta_lines, yaml_path, jobdir, client,
-				pr.head.ref)
+            if rc.batlab_build_type == 'conda':
+                cmd = 'cat {0}/{1}/meta.yaml'.format(jobdir, job[1])
+                yaml_path = '{0}/meta.yaml'.format(job[1])
+                _, x, _ = client.exec_command(cmd)
+                x.channel.recv_exit_status()
+                meta_lines = x.readlines()
+                _ensure_yaml_option("git_url",meta_lines, yaml_path, jobdir, 
+                                    client,head_repo.clone_url)
+                _ensure_yaml_option("git_tag",meta_lines, yaml_path, jobdir,
+                                     client,pr.head.ref)
+            elif rc.batlab_build_type == "custom":
+                fetch = git_fetch_template.format(repo_url=head_repo.clone_url,
+                                          repo_dir=job[1], branch=pr.head.ref)
+                cmd = 'echo "{0}" > {1}/{2}'.format(fetch, jobdir,
+                                             rc.batlab_fetch_file)
+                stdin, stdout, sterr = client.exec_command(cmd)
+                stdout.channel.recv_exit_status()
+                
+            else:
+                event.data['description'] = 'Invalid batlab_build_type'
+                return
 
         except paramiko.SSHException:
-            event.data['description'] = "Error Mangling conda recipe."
+            event.data['description'] = "Error overwriting Fetch fields."
             return     
 
         # job[1] is name of repo
