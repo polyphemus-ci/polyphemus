@@ -98,27 +98,27 @@ def _ensure_runspec_option(option, run_spec_lines, run_spec_path, jobdir, client
         stdin, stdout, sterr = client.exec_command(cmd)
         stdout.channel.recv_exit_status()
 
-def _ensure_yaml_option(option,yaml_lines,yaml_path, jobdir, client, value):
+def _ensure_yaml_option(option,yaml_lines, yaml_path, jobdir, client, value):
     i = -1
-    for j,elem in enumerate(yaml_lines):
+    for j, elem in enumerate(yaml_lines):
         if elem.strip().startswith(option):
             i = j
             break
     if i >= 0:
-        prefix  = yaml_lines[i].split(':', 1)[0] 
+        prefix = yaml_lines[i].split(':', 1)[0] 
         old_val = yaml_lines[i].split(':', 1)[1].strip()
         if old_val != value:
 
             newFile = ''
-            yaml_lines[i] = prefix+': '+value+'\n'
+            yaml_lines[i] = prefix +': ' + value + '\n'
             for line in yaml_lines:
-                newFile+=line
+                newFile += line
             cmd = "echo '"+newFile+"' > {0}/{1}".format(jobdir, yaml_path)
             stdin, stdout, sterr = client.exec_command(cmd)
             stdout.channel.recv_exit_status()
     else:
         cmd = 'echo "{0}: {1}" >> {2}/{3}'.format(option, value,
-                                                   jobdir, yaml_path)
+                                                  jobdir, yaml_path)
         stdin, stdout, sterr = client.exec_command(cmd)
         stdout.channel.recv_exit_status()
 
@@ -272,13 +272,13 @@ class PolyphemusPlugin(Plugin):
                 _, x, _ = client.exec_command(cmd)
                 x.channel.recv_exit_status()
                 meta_lines = x.readlines()
-                _ensure_yaml_option("git_url",meta_lines, yaml_path, jobdir, 
-                                    client,head_repo.clone_url)
+                _ensure_yaml_option("git_url", meta_lines, yaml_path, jobdir, 
+                                    client, head_repo.clone_url)
                 _ensure_yaml_option("git_tag",meta_lines, yaml_path, jobdir,
-                                     client,pr.head.ref)
+                                    client,pr.head.ref)
             elif rc.batlab_build_type == "custom":
                 fetch = git_fetch_template.format(repo_url=head_repo.clone_url,
-                                          repo_dir=job[1], branch=pr.head.ref)
+                                                  repo_dir=job[1], branch=pr.head.ref)
                 cmd = 'echo "{0}" > {1}/{2}'.format(fetch, jobdir,
                                              rc.batlab_fetch_file)
                 stdin, stdout, sterr = client.exec_command(cmd)
@@ -292,10 +292,6 @@ class PolyphemusPlugin(Plugin):
             event.data['description'] = "Error overwriting Fetch fields."
             return     
 
-        # job[1] is name of repo
-        #pr.head.ref is branch
-        
-        
         # append callbacks to run spec
         try:
             cmd = 'cat {0}/{1}'.format(jobdir, rc.batlab_run_spec)
