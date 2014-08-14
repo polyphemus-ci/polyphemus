@@ -98,6 +98,33 @@ def _ensure_runspec_option(option, run_spec_lines, run_spec_path, jobdir, client
         stdin, stdout, sterr = client.exec_command(cmd)
         stdout.channel.recv_exit_status()
 
+def _ensure_yaml_option(option,yaml_lines, yaml_path, jobdir, client, value):
+    i = -1
+    for j, elem in enumerate(yaml_lines):
+        if elem.strip().startswith(option):
+            i = j
+            break
+    if i >= 0:
+        prefix = yaml_lines[i].split(':', 1)[0] 
+        old_val = yaml_lines[i].split(':', 1)[1].strip()
+        if old_val != value:
+
+            newFile = ''
+            yaml_lines[i] = prefix +': ' + value + '\n'
+            for line in yaml_lines:
+                newFile += line
+            cmd = "echo '"+newFile+"' > {0}/{1}".format(jobdir, yaml_path)
+            stdin, stdout, sterr = client.exec_command(cmd)
+            stdout.channel.recv_exit_status()
+    else:
+        cmd = 'echo "{0}: {1}" >> {2}/{3}'.format(option, value,
+                                                  jobdir, yaml_path)
+        stdin, stdout, sterr = client.exec_command(cmd)
+        stdout.channel.recv_exit_status()
+
+
+
+
 class PolyphemusPlugin(Plugin):
     """This class provides functionality for running batlab."""
 
@@ -110,6 +137,7 @@ class PolyphemusPlugin(Plugin):
         batlab_scripts_url=NotSpecified,
         batlab_fetch_file=NotSpecified,
         batlab_run_spec=NotSpecified,
+        batlab_build_type='custom',
         )
 
     rcdocs = {
@@ -128,6 +156,9 @@ class PolyphemusPlugin(Plugin):
         'batlab_run_spec': ("The top level *.run-spec file that is submitted to "
                             "BaTLab. This should be a relative path from "
                             "the base of the batlab_scripts_url dir."),
+        'batlab_build_type': ("Specifies method of building code. Currently "
+                              "supports 'custom' build scripts (default) "
+                              " and 'conda' package building"),
         }
 
     def update_argparser(self, parser):
@@ -143,6 +174,8 @@ class PolyphemusPlugin(Plugin):
                             help=self.rcdocs["batlab_fetch_file"])
         parser.add_argument('--batlab-run-spec', dest='batlab_run_spec',
                             help=self.rcdocs["batlab_run_spec"])
+        parser.add_argument('--batlab-build-type',dest='batlab_build_type',
+                            help=self.rcdocs["batlab_build_type"])
 
     def setup(self, rc):
         if rc.batlab_scripts_url is NotSpecified:
@@ -231,18 +264,34 @@ class PolyphemusPlugin(Plugin):
         else:
             raise ValueError("rc.batlab_scripts_url not understood.")
 
-        # Overwrite fetch file
         head_repo = github3.repository(*pr.head.repo)
-        fetch = git_fetch_template.format(repo_url=head_repo.clone_url,
-                                          repo_dir=job[1], branch=pr.head.ref)
-        cmd = 'echo "{0}" > {1}/{2}'.format(fetch, jobdir, rc.batlab_fetch_file)
         try:
-            stdin, stdout, sterr = client.exec_command(cmd)
-            stdout.channel.recv_exit_status()
+            if rc.batlab_build_type == 'conda':
+                cmd = 'cat {0}/{1}/meta.yaml'.format(jobdir, job[1])
+                yaml_path = '{0}/meta.yaml'.format(job[1])
+                _, x, _ = client.exec_command(cmd)
+                x.channel.recv_exit_status()
+                meta_lines = x.readlines()
+                _ensure_yaml_option("git_url", meta_lines, yaml_path, jobdir, 
+                                    client, head_repo.clone_url)
+                _ensure_yaml_option("git_tag",meta_lines, yaml_path, jobdir,
+                                    client,pr.head.ref)
+            elif rc.batlab_build_type == "custom":
+                fetch = git_fetch_template.format(repo_url=head_repo.clone_url,
+                                                  repo_dir=job[1], branch=pr.head.ref)
+                cmd = 'echo "{0}" > {1}/{2}'.format(fetch, jobdir,
+                                             rc.batlab_fetch_file)
+                stdin, stdout, sterr = client.exec_command(cmd)
+                stdout.channel.recv_exit_status()
+                
+            else:
+                event.data['description'] = 'Invalid batlab_build_type'
+                return
+
         except paramiko.SSHException:
-            event.data['description'] = "Error overwritting fetch file."
-            return
-        
+            event.data['description'] = "Error overwriting Fetch fields."
+            return     
+
         # append callbacks to run spec
         try:
             cmd = 'cat {0}/{1}'.format(jobdir, rc.batlab_run_spec)
