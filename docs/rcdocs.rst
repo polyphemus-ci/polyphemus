@@ -57,8 +57,9 @@ polyphemus.batlabrun
     unpacked., *default:* NotSpecified.
 :batlab_submit_cmd: The command that is used to submit jobs to BaTLab.,
     *default:* 'nmi_submit'.
-
-
+:batlab_build_type: Specifies method of building code. Currently supports 
+    'custom' build scripts (default) and 'conda' package building",
+        *default:* 'custom'.
 
 polyphemus.batlabstat
 =====================
