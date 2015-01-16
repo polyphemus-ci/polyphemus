@@ -400,8 +400,8 @@ class Plugins(object):
             for plugin in self.plugins:
                 plugin.setup(rc)
         except Exception as e:
-            traceback.print_exc()
-            self.exit(e)
+            s = traceback.format_exc()
+            self.exit(s + '\n' + e)
         if rc.only_setup:
             self.exit(0)
 
@@ -412,8 +412,8 @@ class Plugins(object):
             for plugin in self.plugins:
                 plugin.execute(rc)
         except Exception as e:
-            traceback.print_exc()
-            self.exit(e)
+            s = traceback.format_exc()
+            self.exit(s + '\n' + e)
 
     def build_app(self):
         """Creates a default flask application."""
@@ -440,8 +440,8 @@ class Plugins(object):
             for plugin in self.plugins:
                 plugin.teardown(rc)
         except Exception as e:
-            traceback.print_exc()
-            self.exit(e)
+            s = traceback.format_exc()
+            self.exit(s + '\n' + e)
 
     def exit(self, err=0):
         """Exits the process, possibly printing debug info."""
