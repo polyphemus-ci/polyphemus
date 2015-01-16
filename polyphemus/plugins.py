@@ -148,6 +148,7 @@ import warnings
 import importlib
 import argparse
 import textwrap
+import traceback
 from functools import wraps
 
 from flask import Flask
@@ -399,6 +400,7 @@ class Plugins(object):
             for plugin in self.plugins:
                 plugin.setup(rc)
         except Exception as e:
+            traceback.print_exc()
             self.exit(e)
         if rc.only_setup:
             self.exit(0)
@@ -410,6 +412,7 @@ class Plugins(object):
             for plugin in self.plugins:
                 plugin.execute(rc)
         except Exception as e:
+            traceback.print_exc()
             self.exit(e)
 
     def build_app(self):
@@ -437,6 +440,7 @@ class Plugins(object):
             for plugin in self.plugins:
                 plugin.teardown(rc)
         except Exception as e:
+            traceback.print_exc()
             self.exit(e)
 
     def exit(self, err=0):
