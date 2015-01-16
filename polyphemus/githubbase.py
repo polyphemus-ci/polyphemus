@@ -50,7 +50,7 @@ def gh_make_token(gh, user, credfile='gh.cred'):
     while not password:
         password = getpass("{0}'s github password: ".format(user))
     note = 'polyphemus application'
-    note_url = 'polyphemus.org'
+    note_url = 'http://polyphemus.org'
     scopes = ['user', 'repo']
     auth = gh.authorize(user, password, scopes, note, note_url)
     newoverwrite(str(auth.token) + '\n' + str(auth.id) + '\n', credfile)
