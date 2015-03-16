@@ -272,10 +272,6 @@ class PolyphemusPlugin(Plugin):
                 _, x, _ = client.exec_command(cmd)
                 x.channel.recv_exit_status()
                 meta_lines = x.readlines()
-                #_ensure_yaml_option("git_url", meta_lines, yaml_path, jobdir, 
-                #                    client, head_repo.clone_url)
-                #_ensure_yaml_option("git_tag",meta_lines, yaml_path, jobdir,
-                #                    client,pr.head.ref)
                 newurl = head_repo.archive_urlt.expand(ref=pr.head.ref,
                                                     archive_format='tarball')
                 _ensure_yaml_option("url", meta_lines, yaml_path, jobdir, 
