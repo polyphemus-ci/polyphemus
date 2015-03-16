@@ -109,11 +109,11 @@ def _ensure_yaml_option(option,yaml_lines, yaml_path, jobdir, client, value):
         old_val = yaml_lines[i].split(':', 1)[1].strip()
         if old_val != value:
 
-            newFile = ''
+            newfile = ''
             yaml_lines[i] = prefix +': ' + value + '\n'
             for line in yaml_lines:
-                newFile += line
-            cmd = "echo '"+newFile+"' > {0}/{1}".format(jobdir, yaml_path)
+                newfile += line
+            cmd = "echo '" + newfile + "' > {0}/{1}".format(jobdir, yaml_path)
             stdin, stdout, sterr = client.exec_command(cmd)
             stdout.channel.recv_exit_status()
     else:
@@ -272,10 +272,10 @@ class PolyphemusPlugin(Plugin):
                 _, x, _ = client.exec_command(cmd)
                 x.channel.recv_exit_status()
                 meta_lines = x.readlines()
-                _ensure_yaml_option("git_url", meta_lines, yaml_path, jobdir, 
-                                    client, head_repo.clone_url)
-                _ensure_yaml_option("git_tag",meta_lines, yaml_path, jobdir,
-                                    client,pr.head.ref)
+                newurl = head_repo.archive_urlt.expand(
+                    ref=pr.head.ref, archive_format='tarball')
+                _ensure_yaml_option("url", meta_lines, yaml_path, jobdir, 
+                                    client, newurl)
             elif rc.batlab_build_type == "custom":
                 fetch = git_fetch_template.format(repo_url=head_repo.clone_url,
                                                   repo_dir=job[1], branch=pr.head.ref)
@@ -373,9 +373,6 @@ class PolyphemusPlugin(Plugin):
 
         # clean up
         lines = submitout.readlines()
-        #import pprint
-        #pprint.pprint(lines)
-        #pprint.pprint(submiterr.read())
         report_url = lines[-1].strip()
         gid = lines[0].split()[-1]
         client.close()
