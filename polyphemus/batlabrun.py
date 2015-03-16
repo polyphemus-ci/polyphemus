@@ -272,8 +272,8 @@ class PolyphemusPlugin(Plugin):
                 _, x, _ = client.exec_command(cmd)
                 x.channel.recv_exit_status()
                 meta_lines = x.readlines()
-                newurl = head_repo.archive_urlt.expand(ref=pr.head.ref,
-                    archive_format='tarball')
+                newurl = head_repo.archive_urlt.expand(
+                    ref=pr.head.ref, archive_format='tarball')
                 _ensure_yaml_option("url", meta_lines, yaml_path, jobdir, 
                                     client, newurl)
             elif rc.batlab_build_type == "custom":
