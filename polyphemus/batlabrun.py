@@ -276,10 +276,8 @@ class PolyphemusPlugin(Plugin):
                 #                    client, head_repo.clone_url)
                 #_ensure_yaml_option("git_tag",meta_lines, yaml_path, jobdir,
                 #                    client,pr.head.ref)
-                newurl = head_repo.archive_urlt.replace('{archive_format}', 
-                                                        'tarball')
-                newurl = newurl.replace('{/ref}', '/' + pr.head.ref)
-                newurl = newurl.replace('{ref}', pr.head.ref)
+                newurl = head_repo.archive_urlt.expand(ref=pr.head.ref,
+                                                    archive_format='tarball')
                 _ensure_yaml_option("url", meta_lines, yaml_path, jobdir, 
                                     client, newurl)
             elif rc.batlab_build_type == "custom":
